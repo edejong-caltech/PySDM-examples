@@ -4,5 +4,5 @@ jsonschema==3.2.0  # https://github.com/jupyter/nbformat/issues/232
 Jinja2<3.0.0  # https://github.com/jupyter/nbconvert/issues/1568
 MarkupSafe<2.1.0  # https://github.com/aws/aws-sam-cli/issues/3661
 
-PySDM @ git+https://github.com/edejong-caltech/PySDM@03cc29b#egg=PySDM
+PySDM @ git+https://github.com/atmos-cloud-sim-uj/PySDM@b39bdda#egg=PySDM
 PyMPDATA @ git+https://github.com/atmos-cloud-sim-uj/PyMPDATA@bb963c2#egg=PyMPDATA
