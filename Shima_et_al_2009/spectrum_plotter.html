@@ -26,21 +26,21 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from distutils.version import StrictVersion
+<pre><code class="python">import matplotlib
 import numpy as np
-import matplotlib
-from matplotlib import pyplot
 from atmos_cloud_sim_uj_utils import show_plot
+from matplotlib import pyplot
+from packaging import version
 from PySDM.physics.constants import si
+
 from PySDM_examples.Shima_et_al_2009.error_measure import error_measure
 
-_matplotlib_version_3_3_3 = StrictVersion(&#34;3.3.0&#34;)
-_matplotlib_version_actual = StrictVersion(matplotlib.__version__)
+_matplotlib_version_3_3_3 = version.parse(&#34;3.3.0&#34;)
+_matplotlib_version_actual = version.parse(matplotlib.__version__)
 
 
 class SpectrumColors:
-
-    def __init__(self, begining=&#39;#2cbdfe&#39;, end=&#39;#b317b1&#39;):
+    def __init__(self, begining=&#34;#2cbdfe&#34;, end=&#34;#b317b1&#34;):
         self.b = begining
         self.e = end
 
@@ -57,15 +57,15 @@ class SpectrumColors:
 class SpectrumPlotter:
     def __init__(self, settings, title=None, grid=True, legend=True, log_base=10):
         self.settings = settings
-        self.format = &#39;pdf&#39;
+        self.format = &#34;pdf&#34;
         self.colors = SpectrumColors()
         self.smooth = False
         self.smooth_scope = 2
         self.legend = legend
         self.grid = grid
         self.title = title
-        self.xlabel = &#39;particle radius [µm]&#39;
-        self.ylabel = &#39;dm/dlnr [g/m^3/(unit dr/r)]&#39;
+        self.xlabel = &#34;particle radius [µm]&#34;
+        self.ylabel = &#34;dm/dlnr [g/m^3/(unit dr/r)]&#34;
         self.log_base = log_base
         self.ax = pyplot
         self.fig = pyplot
@@ -79,8 +79,10 @@ class SpectrumPlotter:
             self.ax.grid()
 
         base_arg = {
-            &#34;base&#34; + (&#34;x&#34; if _matplotlib_version_actual &lt; _matplotlib_version_3_3_3 else &#34;&#34;):
-                self.log_base
+            &#34;base&#34;
+            + (
+                &#34;x&#34; if _matplotlib_version_actual &lt; _matplotlib_version_3_3_3 else &#34;&#34;
+            ): self.log_base
         }
         if self.title is not None:
             try:
@@ -88,11 +90,11 @@ class SpectrumPlotter:
             except TypeError:
                 self.ax.set_title(self.title)
         try:
-            self.ax.xscale(&#39;log&#39;, **base_arg)
+            self.ax.xscale(&#34;log&#34;, **base_arg)
             self.ax.xlabel(self.xlabel)
             self.ax.ylabel(self.ylabel)
         except AttributeError:
-            self.ax.set_xscale(&#39;log&#39;, **base_arg)
+            self.ax.set_xscale(&#34;log&#34;, **base_arg)
             self.ax.set_xlabel(self.xlabel)
             self.ax.set_ylabel(self.ylabel)
         if self.legend:
@@ -116,11 +118,16 @@ class SpectrumPlotter:
         if t == 0:
             analytic_solution = settings.spectrum.size_distribution
         else:
-            analytic_solution = lambda x: settings.norm_factor * settings.kernel.analytic_solution(
-                x=x, t=t, x_0=settings.X0, N_0=settings.n_part
+            analytic_solution = (
+                lambda x: settings.norm_factor
+                * settings.kernel.analytic_solution(
+                    x=x, t=t, x_0=settings.X0, N_0=settings.n_part
+                )
             )
 
-        volume_bins_edges = self.settings.formulae.trivia.volume(settings.radius_bins_edges)
+        volume_bins_edges = self.settings.formulae.trivia.volume(
+            settings.radius_bins_edges
+        )
         dm = np.diff(volume_bins_edges)
         dr = np.diff(settings.radius_bins_edges)
 
@@ -134,16 +141,18 @@ class SpectrumPlotter:
         y_true = (
             pdf_r_y
             * self.settings.formulae.trivia.volume(radius=pdf_r_x)
-            * settings.rho / settings.dv
-            * si.kilograms / si.grams
+            * settings.rho
+            / settings.dv
+            * si.kilograms
+            / si.grams
         )
 
-        self.ax.plot(x, y_true, color=&#39;black&#39;)
+        self.ax.plot(x, y_true, color=&#34;black&#34;)
 
         if spectrum is not None:
             y = spectrum * si.kilograms / si.grams
             error = error_measure(y, y_true, x)
-            self.title = f&#39;error measure: {error:.2f}&#39; # TODO #327 relative error
+            self.title = f&#34;error measure: {error:.2f}&#34;  # TODO #327 relative error
             return error
         return None
 
@@ -154,26 +163,30 @@ class SpectrumPlotter:
                 new = np.copy(spectrum)
                 for _ in range(2):
                     for i in range(scope, len(spectrum) - scope):
-                        new[i] = np.mean(spectrum[i - scope:i + scope + 1])
+                        new[i] = np.mean(spectrum[i - scope : i + scope + 1])
                     scope = 1
                     for i in range(scope, len(spectrum) - scope):
-                        spectrum[i] = np.mean(new[i - scope:i + scope + 1])
+                        spectrum[i] = np.mean(new[i - scope : i + scope + 1])
 
             x = settings.radius_bins_edges[:-scope]
             dx = np.diff(x)
             self.ax.plot(
-                (x[:-1] + dx/2) * si.metres / si.micrometres,
+                (x[:-1] + dx / 2) * si.metres / si.micrometres,
                 spectrum[:-scope] * si.kilograms / si.grams,
                 label=f&#34;t = {t}s&#34;,
-                color=self.colors(t / (self.settings.output_steps[-1] * self.settings.dt))
+                color=self.colors(
+                    t / (self.settings.output_steps[-1] * self.settings.dt)
+                ),
             )
         else:
             self.ax.step(
                 settings.radius_bins_edges[:-1] * si.metres / si.micrometres,
                 spectrum * si.kilograms / si.grams,
-                where=&#39;post&#39;,
+                where=&#34;post&#34;,
                 label=f&#34;t = {t}s&#34;,
-                color=self.colors(t / (self.settings.output_steps[-1] * self.settings.dt))
+                color=self.colors(
+                    t / (self.settings.output_steps[-1] * self.settings.dt)
+                ),
             )</code></pre>
 </details>
 </section>
@@ -197,8 +210,7 @@ class SpectrumPlotter:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SpectrumColors:
-
-    def __init__(self, begining=&#39;#2cbdfe&#39;, end=&#39;#b317b1&#39;):
+    def __init__(self, begining=&#34;#2cbdfe&#34;, end=&#34;#b317b1&#34;):
         self.b = begining
         self.e = end
 
@@ -225,15 +237,15 @@ class SpectrumPlotter:
 <pre><code class="python">class SpectrumPlotter:
     def __init__(self, settings, title=None, grid=True, legend=True, log_base=10):
         self.settings = settings
-        self.format = &#39;pdf&#39;
+        self.format = &#34;pdf&#34;
         self.colors = SpectrumColors()
         self.smooth = False
         self.smooth_scope = 2
         self.legend = legend
         self.grid = grid
         self.title = title
-        self.xlabel = &#39;particle radius [µm]&#39;
-        self.ylabel = &#39;dm/dlnr [g/m^3/(unit dr/r)]&#39;
+        self.xlabel = &#34;particle radius [µm]&#34;
+        self.ylabel = &#34;dm/dlnr [g/m^3/(unit dr/r)]&#34;
         self.log_base = log_base
         self.ax = pyplot
         self.fig = pyplot
@@ -247,8 +259,10 @@ class SpectrumPlotter:
             self.ax.grid()
 
         base_arg = {
-            &#34;base&#34; + (&#34;x&#34; if _matplotlib_version_actual &lt; _matplotlib_version_3_3_3 else &#34;&#34;):
-                self.log_base
+            &#34;base&#34;
+            + (
+                &#34;x&#34; if _matplotlib_version_actual &lt; _matplotlib_version_3_3_3 else &#34;&#34;
+            ): self.log_base
         }
         if self.title is not None:
             try:
@@ -256,11 +270,11 @@ class SpectrumPlotter:
             except TypeError:
                 self.ax.set_title(self.title)
         try:
-            self.ax.xscale(&#39;log&#39;, **base_arg)
+            self.ax.xscale(&#34;log&#34;, **base_arg)
             self.ax.xlabel(self.xlabel)
             self.ax.ylabel(self.ylabel)
         except AttributeError:
-            self.ax.set_xscale(&#39;log&#39;, **base_arg)
+            self.ax.set_xscale(&#34;log&#34;, **base_arg)
             self.ax.set_xlabel(self.xlabel)
             self.ax.set_ylabel(self.ylabel)
         if self.legend:
@@ -284,11 +298,16 @@ class SpectrumPlotter:
         if t == 0:
             analytic_solution = settings.spectrum.size_distribution
         else:
-            analytic_solution = lambda x: settings.norm_factor * settings.kernel.analytic_solution(
-                x=x, t=t, x_0=settings.X0, N_0=settings.n_part
+            analytic_solution = (
+                lambda x: settings.norm_factor
+                * settings.kernel.analytic_solution(
+                    x=x, t=t, x_0=settings.X0, N_0=settings.n_part
+                )
             )
 
-        volume_bins_edges = self.settings.formulae.trivia.volume(settings.radius_bins_edges)
+        volume_bins_edges = self.settings.formulae.trivia.volume(
+            settings.radius_bins_edges
+        )
         dm = np.diff(volume_bins_edges)
         dr = np.diff(settings.radius_bins_edges)
 
@@ -302,16 +321,18 @@ class SpectrumPlotter:
         y_true = (
             pdf_r_y
             * self.settings.formulae.trivia.volume(radius=pdf_r_x)
-            * settings.rho / settings.dv
-            * si.kilograms / si.grams
+            * settings.rho
+            / settings.dv
+            * si.kilograms
+            / si.grams
         )
 
-        self.ax.plot(x, y_true, color=&#39;black&#39;)
+        self.ax.plot(x, y_true, color=&#34;black&#34;)
 
         if spectrum is not None:
             y = spectrum * si.kilograms / si.grams
             error = error_measure(y, y_true, x)
-            self.title = f&#39;error measure: {error:.2f}&#39; # TODO #327 relative error
+            self.title = f&#34;error measure: {error:.2f}&#34;  # TODO #327 relative error
             return error
         return None
 
@@ -322,26 +343,30 @@ class SpectrumPlotter:
                 new = np.copy(spectrum)
                 for _ in range(2):
                     for i in range(scope, len(spectrum) - scope):
-                        new[i] = np.mean(spectrum[i - scope:i + scope + 1])
+                        new[i] = np.mean(spectrum[i - scope : i + scope + 1])
                     scope = 1
                     for i in range(scope, len(spectrum) - scope):
-                        spectrum[i] = np.mean(new[i - scope:i + scope + 1])
+                        spectrum[i] = np.mean(new[i - scope : i + scope + 1])
 
             x = settings.radius_bins_edges[:-scope]
             dx = np.diff(x)
             self.ax.plot(
-                (x[:-1] + dx/2) * si.metres / si.micrometres,
+                (x[:-1] + dx / 2) * si.metres / si.micrometres,
                 spectrum[:-scope] * si.kilograms / si.grams,
                 label=f&#34;t = {t}s&#34;,
-                color=self.colors(t / (self.settings.output_steps[-1] * self.settings.dt))
+                color=self.colors(
+                    t / (self.settings.output_steps[-1] * self.settings.dt)
+                ),
             )
         else:
             self.ax.step(
                 settings.radius_bins_edges[:-1] * si.metres / si.micrometres,
                 spectrum * si.kilograms / si.grams,
-                where=&#39;post&#39;,
+                where=&#34;post&#34;,
                 label=f&#34;t = {t}s&#34;,
-                color=self.colors(t / (self.settings.output_steps[-1] * self.settings.dt))
+                color=self.colors(
+                    t / (self.settings.output_steps[-1] * self.settings.dt)
+                ),
             )</code></pre>
 </details>
 <h3>Subclasses</h3>
@@ -367,8 +392,10 @@ class SpectrumPlotter:
         self.ax.grid()
 
     base_arg = {
-        &#34;base&#34; + (&#34;x&#34; if _matplotlib_version_actual &lt; _matplotlib_version_3_3_3 else &#34;&#34;):
-            self.log_base
+        &#34;base&#34;
+        + (
+            &#34;x&#34; if _matplotlib_version_actual &lt; _matplotlib_version_3_3_3 else &#34;&#34;
+        ): self.log_base
     }
     if self.title is not None:
         try:
@@ -376,11 +403,11 @@ class SpectrumPlotter:
         except TypeError:
             self.ax.set_title(self.title)
     try:
-        self.ax.xscale(&#39;log&#39;, **base_arg)
+        self.ax.xscale(&#34;log&#34;, **base_arg)
         self.ax.xlabel(self.xlabel)
         self.ax.ylabel(self.ylabel)
     except AttributeError:
-        self.ax.set_xscale(&#39;log&#39;, **base_arg)
+        self.ax.set_xscale(&#34;log&#34;, **base_arg)
         self.ax.set_xlabel(self.xlabel)
         self.ax.set_ylabel(self.ylabel)
     if self.legend:
@@ -415,11 +442,16 @@ class SpectrumPlotter:
     if t == 0:
         analytic_solution = settings.spectrum.size_distribution
     else:
-        analytic_solution = lambda x: settings.norm_factor * settings.kernel.analytic_solution(
-            x=x, t=t, x_0=settings.X0, N_0=settings.n_part
+        analytic_solution = (
+            lambda x: settings.norm_factor
+            * settings.kernel.analytic_solution(
+                x=x, t=t, x_0=settings.X0, N_0=settings.n_part
+            )
         )
 
-    volume_bins_edges = self.settings.formulae.trivia.volume(settings.radius_bins_edges)
+    volume_bins_edges = self.settings.formulae.trivia.volume(
+        settings.radius_bins_edges
+    )
     dm = np.diff(volume_bins_edges)
     dr = np.diff(settings.radius_bins_edges)
 
@@ -433,16 +465,18 @@ class SpectrumPlotter:
     y_true = (
         pdf_r_y
         * self.settings.formulae.trivia.volume(radius=pdf_r_x)
-        * settings.rho / settings.dv
-        * si.kilograms / si.grams
+        * settings.rho
+        / settings.dv
+        * si.kilograms
+        / si.grams
     )
 
-    self.ax.plot(x, y_true, color=&#39;black&#39;)
+    self.ax.plot(x, y_true, color=&#34;black&#34;)
 
     if spectrum is not None:
         y = spectrum * si.kilograms / si.grams
         error = error_measure(y, y_true, x)
-        self.title = f&#39;error measure: {error:.2f}&#39; # TODO #327 relative error
+        self.title = f&#34;error measure: {error:.2f}&#34;  # TODO #327 relative error
         return error
     return None</code></pre>
 </details>
@@ -463,26 +497,30 @@ class SpectrumPlotter:
             new = np.copy(spectrum)
             for _ in range(2):
                 for i in range(scope, len(spectrum) - scope):
-                    new[i] = np.mean(spectrum[i - scope:i + scope + 1])
+                    new[i] = np.mean(spectrum[i - scope : i + scope + 1])
                 scope = 1
                 for i in range(scope, len(spectrum) - scope):
-                    spectrum[i] = np.mean(new[i - scope:i + scope + 1])
+                    spectrum[i] = np.mean(new[i - scope : i + scope + 1])
 
         x = settings.radius_bins_edges[:-scope]
         dx = np.diff(x)
         self.ax.plot(
-            (x[:-1] + dx/2) * si.metres / si.micrometres,
+            (x[:-1] + dx / 2) * si.metres / si.micrometres,
             spectrum[:-scope] * si.kilograms / si.grams,
             label=f&#34;t = {t}s&#34;,
-            color=self.colors(t / (self.settings.output_steps[-1] * self.settings.dt))
+            color=self.colors(
+                t / (self.settings.output_steps[-1] * self.settings.dt)
+            ),
         )
     else:
         self.ax.step(
             settings.radius_bins_edges[:-1] * si.metres / si.micrometres,
             spectrum * si.kilograms / si.grams,
-            where=&#39;post&#39;,
+            where=&#34;post&#34;,
             label=f&#34;t = {t}s&#34;,
-            color=self.colors(t / (self.settings.output_steps[-1] * self.settings.dt))
+            color=self.colors(
+                t / (self.settings.output_steps[-1] * self.settings.dt)
+            ),
         )</code></pre>
 </details>
 </dd>

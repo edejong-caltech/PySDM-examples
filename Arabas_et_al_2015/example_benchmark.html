@@ -27,11 +27,13 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import importlib
-from matplotlib import pyplot as plt
-from PySDM.products import WallTime
-from PySDM import Formulae
+
 import PySDM.backends.impl_numba.conf
+from matplotlib import pyplot as plt
+from PySDM import Formulae
 from PySDM.backends import CPU, GPU
+from PySDM.products import WallTime
+
 from PySDM_examples.Arabas_et_al_2015 import Settings
 from PySDM_examples.Szumowski_et_al_1998 import Simulation, Storage
 
@@ -61,7 +63,7 @@ def main():
         &#34;coalescence&#34;: True,
         &#34;condensation&#34;: False,
         &#34;sedimentation&#34;: True,
-        &#39;freezing&#39;: False
+        &#34;freezing&#34;: False,
     }
 
     n_sd = range(14, 16, 1)
@@ -82,7 +84,7 @@ def main():
             simulation = Simulation(settings, storage, None, backend)
             simulation.reinit(products=[WallTime()])
             simulation.run()
-            times[key].append(storage.load(&#39;wall time&#39;)[-1])
+            times[key].append(storage.load(&#34;wall time&#34;)[-1])
 
     for parallelization, t in times.items():
         plt.plot(n_sd, t, label=parallelization)
@@ -91,7 +93,7 @@ def main():
     plt.savefig(&#34;benchmark.pdf&#34;, format=&#34;pdf&#34;)
 
 
-if __name__ == &#39;__main__&#39;:
+if __name__ == &#34;__main__&#34;:
     main()</code></pre>
 </details>
 </section>
@@ -123,7 +125,7 @@ if __name__ == &#39;__main__&#39;:
         &#34;coalescence&#34;: True,
         &#34;condensation&#34;: False,
         &#34;sedimentation&#34;: True,
-        &#39;freezing&#39;: False
+        &#34;freezing&#34;: False,
     }
 
     n_sd = range(14, 16, 1)
@@ -144,7 +146,7 @@ if __name__ == &#39;__main__&#39;:
             simulation = Simulation(settings, storage, None, backend)
             simulation.reinit(products=[WallTime()])
             simulation.run()
-            times[key].append(storage.load(&#39;wall time&#39;)[-1])
+            times[key].append(storage.load(&#34;wall time&#34;)[-1])
 
     for parallelization, t in times.items():
         plt.plot(n_sd, t, label=parallelization)

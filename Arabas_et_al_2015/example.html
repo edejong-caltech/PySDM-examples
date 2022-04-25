@@ -27,9 +27,10 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from atmos_cloud_sim_uj_utils import TemporaryFile
+from PySDM import Formulae
 from PySDM.exporters import NetCDFExporter
 from PySDM.physics import si
-from PySDM import Formulae
+
 from PySDM_examples.Arabas_et_al_2015 import Settings, SpinUp
 from PySDM_examples.Szumowski_et_al_1998 import Simulation, Storage
 from PySDM_examples.utils import DummyController
@@ -46,12 +47,12 @@ def main():
     simulation = Simulation(settings, storage, SpinUp)
     simulation.reinit()
     simulation.run()
-    temp_file = TemporaryFile(&#39;.nc&#39;)
+    temp_file = TemporaryFile(&#34;.nc&#34;)
     exporter = NetCDFExporter(storage, settings, simulation, temp_file.absolute_path)
     exporter.run(controller=DummyController())
 
 
-if __name__ == &#39;__main__&#39;:
+if __name__ == &#34;__main__&#34;:
     main()</code></pre>
 </details>
 </section>
@@ -82,7 +83,7 @@ if __name__ == &#39;__main__&#39;:
     simulation = Simulation(settings, storage, SpinUp)
     simulation.reinit()
     simulation.run()
-    temp_file = TemporaryFile(&#39;.nc&#39;)
+    temp_file = TemporaryFile(&#34;.nc&#34;)
     exporter = NetCDFExporter(storage, settings, simulation, temp_file.absolute_path)
     exporter.run(controller=DummyController())</code></pre>
 </details>

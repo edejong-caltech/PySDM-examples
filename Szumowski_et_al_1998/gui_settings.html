@@ -27,13 +27,22 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import inspect
+
 import numpy as np
-from PySDM import Formulae, physics
-from PySDM import formulae
-from PySDM.physics import si
+from PySDM import Formulae, formulae, physics
 from PySDM.initialisation.spectra import Lognormal
-from PySDM_examples.utils.widgets import IntSlider, FloatSlider, VBox, Checkbox, Accordion,\
-    Dropdown, RadioButtons, Layout
+from PySDM.physics import si
+
+from PySDM_examples.utils.widgets import (
+    Accordion,
+    Checkbox,
+    Dropdown,
+    FloatSlider,
+    IntSlider,
+    Layout,
+    RadioButtons,
+    VBox,
+)
 
 
 class GUISettings:
@@ -44,70 +53,97 @@ class GUISettings:
         self.__settings = settings
 
         self.ui_dth0 = FloatSlider(
-            description=&#34;$\\Delta\\theta_0$ [K]&#34;, value=0, min=-15, max=15)
+            description=&#34;$\\Delta\\theta_0$ [K]&#34;, value=0, min=-15, max=15
+        )
         self.ui_dqv0 = FloatSlider(
-            description=&#34;$\\Delta q_{v0}$ [g/kg]&#34;, value=0, min=-6, max=6)
+            description=&#34;$\\Delta q_{v0}$ [g/kg]&#34;, value=0, min=-6, max=6
+        )
         self.ui_rhod_w_max = FloatSlider(
-            description=&#34;$\\rho_d w_{max}$&#34;, value=settings.rhod_w_max, min=.1, max=2, step=.1
+            description=&#34;$\\rho_d w_{max}$&#34;,
+            value=settings.rhod_w_max,
+            min=0.1,
+            max=2,
+            step=0.1,
         )
         self.ui_kappa = FloatSlider(
-            description=&#34;$\\kappa$ [1]&#34;, value=settings.kappa, min=0, max=1.5)
+            description=&#34;$\\kappa$ [1]&#34;, value=settings.kappa, min=0, max=1.5
+        )
 
         self.ui_freezing = {
-            &#39;model&#39;: RadioButtons(
-                options=(&#39;singular&#39;, &#39;time-dependent&#39;),
-                description=&#39;immersion frz&#39;,
-                layout={&#39;width&#39;: &#39;max-content&#39;}
+            &#34;model&#34;: RadioButtons(
+                options=(&#34;singular&#34;, &#34;time-dependent&#34;),
+                description=&#34;immersion frz&#34;,
+                layout={&#34;width&#34;: &#34;max-content&#34;},
             ),
-            &#39;INP surface&#39;: RadioButtons(
-                options=(&#39;as dry surface&#39;, &#39;lognormal(A, sgm_g)&#39;),
-                description=&#39;INP surface&#39;
+            &#34;INP surface&#34;: RadioButtons(
+                options=(&#34;as dry surface&#34;, &#34;lognormal(A, sgm_g)&#34;),
+                description=&#34;INP surface&#34;,
             ),
-            &#39;lognormal_log10_A_um2&#39;: FloatSlider(
-                description=&#39;log10(A/$μm^2$)&#39;, min=-3, max=1, step=.5
+            &#34;lognormal_log10_A_um2&#34;: FloatSlider(
+                description=&#34;log10(A/$μm^2$)&#34;, min=-3, max=1, step=0.5
             ),
-            &#39;lognormal_ln_sgm_g&#39;: FloatSlider(
-                description=&#39;ln(sgm_g)&#39;, min=.5, max=3, step=.5
+            &#34;lognormal_ln_sgm_g&#34;: FloatSlider(
+                description=&#34;ln(sgm_g)&#34;, min=0.5, max=3, step=0.5
             ),
-            &#39;ABIFM fit&#39;: Dropdown(
-                description=&#39;ABIFM fit&#39;, options=(&#39;Nonadecanol&#39;,)
+            &#34;ABIFM fit&#34;: Dropdown(description=&#34;ABIFM fit&#34;, options=(&#34;Nonadecanol&#34;,)),
+            &#34;INAS fit&#34;: Dropdown(
+                description=&#34;INAS fit&#34;, options=(&#34;Niemand et al. 2012&#34;,)
             ),
-            &#39;INAS fit&#39;: Dropdown(
-                description=&#39;INAS fit&#39;, options=(&#39;Niemand et al. 2012&#39;,)
-            )
         }
         # TODO #599 cool rate product + sing/tdep diff prod
 
-        self.ui_nx = IntSlider(value=settings.grid[0], min=10, max=100, description=&#34;nx&#34;)
-        self.ui_nz = IntSlider(value=settings.grid[1], min=10, max=100, description=&#34;nz&#34;)
-        self.ui_dt = FloatSlider(value=settings.dt, min=.5, max=60, description=&#34;dt (Eulerian)&#34;)
+        self.ui_nx = IntSlider(
+            value=settings.grid[0], min=10, max=100, description=&#34;nx&#34;
+        )
+        self.ui_nz = IntSlider(
+            value=settings.grid[1], min=10, max=100, description=&#34;nz&#34;
+        )
+        self.ui_dt = FloatSlider(
+            value=settings.dt, min=0.5, max=60, description=&#34;dt (Eulerian)&#34;
+        )
         self.ui_simulation_time = IntSlider(
             value=settings.simulation_time,
             min=1800,
             max=7200,
-            description=&#34;simulation time $[s]$&#34;)
+            description=&#34;simulation time $[s]$&#34;,
+        )
         self.ui_condensation_rtol_x = IntSlider(
             value=np.log10(settings.condensation_rtol_thd),
             min=-9,
             max=-3,
-            description=&#34;log$_{10}$(rtol$_x$)&#34;)
+            description=&#34;log$_{10}$(rtol$_x$)&#34;,
+        )
         self.ui_condensation_rtol_thd = IntSlider(
             value=np.log10(settings.condensation_rtol_thd),
             min=-9,
             max=-3,
-            description=&#34;log$_{10}$(rtol$_\\theta$)&#34;)
+            description=&#34;log$_{10}$(rtol$_\\theta$)&#34;,
+        )
         self.ui_condensation_adaptive = Checkbox(
             value=settings.condensation_adaptive,
-            description=&#39;condensation adaptive time-step&#39;)
+            description=&#34;condensation adaptive time-step&#34;,
+        )
         self.ui_coalescence_adaptive = Checkbox(
             value=settings.condensation_adaptive,
-            description=&#39;coalescence adaptive time-step&#39;)
+            description=&#34;coalescence adaptive time-step&#34;,
+        )
+        self.ui_displacement_rtol = IntSlider(
+            value=np.log10(settings.displacement_rtol),
+            min=-3,
+            max=0,
+            description=&#34;log$_{10}$(rtol)&#34;,
+        )
+        self.ui_displacement_adaptive = Checkbox(
+            value=settings.displacement_adaptive,
+            description=&#34;displacement adaptive time-step&#34;,
+        )
         self.ui_processes = [
             Checkbox(value=settings.processes[key], description=key)
             for key in settings.processes.keys()
         ]
-        self.ui_sdpg = IntSlider(value=settings.n_sd_per_gridbox,
-                                 description=&#34;n_sd/gridbox&#34;, min=1, max=1000)
+        self.ui_sdpg = IntSlider(
+            value=settings.n_sd_per_gridbox, description=&#34;n_sd/gridbox&#34;, min=1, max=1000
+        )
         self.fct_description = &#34;MPDATA: flux-corrected transport option&#34;
         self.tot_description = &#34;MPDATA: third-order terms option&#34;
         self.iga_description = &#34;MPDATA: infinite gauge option&#34;
@@ -116,39 +152,58 @@ class GUISettings:
             Checkbox(value=settings.mpdata_fct, description=self.fct_description),
             Checkbox(value=settings.mpdata_tot, description=self.tot_description),
             Checkbox(value=settings.mpdata_iga, description=self.iga_description),
-            IntSlider(value=settings.mpdata_iters, description=self.nit_description, min=1, max=5)
+            IntSlider(
+                value=settings.mpdata_iters,
+                description=self.nit_description,
+                min=1,
+                max=5,
+            ),
         ]
         self.ui_formulae_options = [
             Dropdown(
                 description=k,
                 options=formulae._choices(getattr(physics, k)).keys(),
-                value=v.default
+                value=v.default,
             )
             for k, v in inspect.signature(Formulae.__init__).parameters.items()
-            if k not in (&#39;self&#39;, &#39;fastmath&#39;, &#39;seed&#39;, &#39;constants&#39;)
+            if k not in (&#34;self&#34;, &#34;fastmath&#34;, &#34;seed&#34;, &#34;constants&#34;)
         ]
         self.ui_formulae_options.append(
             Checkbox(
-                value=inspect.signature(Formulae.__init__).parameters[&#39;fastmath&#39;].default,
-                description=&#39;fastmath&#39;
+                value=inspect.signature(Formulae.__init__)
+                .parameters[&#34;fastmath&#34;]
+                .default,
+                description=&#34;fastmath&#34;,
             )
         )
         self.ui_output_options = {
-            &#39;interval&#39;: IntSlider(description=&#39;interval [s]&#39;,
-                                  value=settings.output_interval, min=30, max=60*15),
-            &#39;aerosol_radius_threshold&#39;: FloatSlider(
-                description=&#39;aerosol/cloud threshold [um]&#39;,
+            &#34;interval&#34;: IntSlider(
+                description=&#34;interval [s]&#34;,
+                value=settings.output_interval,
+                min=30,
+                max=60 * 15,
+            ),
+            &#34;aerosol_radius_threshold&#34;: FloatSlider(
+                description=&#34;aerosol/cloud threshold [um]&#34;,
                 value=settings.aerosol_radius_threshold / physics.si.um,
-                min=.1, max=1, step=.1),
-            &#39;drizzle_radius_threshold&#39;: IntSlider(
-                description=&#39;cloud/drizzle threshold [um]&#39;,
+                min=0.1,
+                max=1,
+                step=0.1,
+            ),
+            &#34;drizzle_radius_threshold&#34;: IntSlider(
+                description=&#34;cloud/drizzle threshold [um]&#34;,
                 value=settings.drizzle_radius_threshold / physics.si.um,
-                min=10, max=100, step=5)
+                min=10,
+                max=100,
+                step=5,
+            ),
         }
 
         self.r_bins_edges = settings.r_bins_edges
         self.T_bins_edges = settings.T_bins_edges
-        self.terminal_velocity_radius_bin_edges = settings.terminal_velocity_radius_bin_edges
+        self.terminal_velocity_radius_bin_edges = (
+            settings.terminal_velocity_radius_bin_edges
+        )
 
         self.size = settings.size
         self.condensation_substeps = settings.condensation_substeps
@@ -160,7 +215,7 @@ class GUISettings:
         self.coalescence_optimized_random = settings.coalescence_optimized_random
         self.coalescence_substeps = settings.coalescence_substeps
 
-        for attr in (&#39;rhod_of_zZ&#39;, &#39;versions&#39;, &#39;n_spin_up&#39;):
+        for attr in (&#34;rhod_of_zZ&#34;, &#34;versions&#34;, &#34;n_spin_up&#34;):
             setattr(self, attr, getattr(settings, attr))
 
     @property
@@ -173,22 +228,25 @@ class GUISettings:
 
     @property
     def initial_dry_potential_temperature_profile(self):
-        return np.full(self.grid[-1], self.formulae.state_variable_triplet.th_dry(
-            self.__settings.th_std0 + self.ui_dth0.value,
-            self.__settings.qv0 + self.ui_dqv0.value / 1000
-        ))
+        return np.full(
+            self.grid[-1],
+            self.formulae.state_variable_triplet.th_dry(
+                self.__settings.th_std0 + self.ui_dth0.value,
+                self.__settings.qv0 + self.ui_dqv0.value / 1000,
+            ),
+        )
 
     @property
     def aerosol_radius_threshold(self):
-        return self.ui_output_options[&#39;aerosol_radius_threshold&#39;].value * physics.si.um
+        return self.ui_output_options[&#34;aerosol_radius_threshold&#34;].value * physics.si.um
 
     @property
     def drizzle_radius_threshold(self):
-        return self.ui_output_options[&#39;drizzle_radius_threshold&#39;].value * physics.si.um
+        return self.ui_output_options[&#34;drizzle_radius_threshold&#34;].value * physics.si.um
 
     @property
     def output_interval(self):
-        return self.ui_output_options[&#39;interval&#39;].value
+        return self.ui_output_options[&#34;interval&#34;].value
 
     @property
     def formulae(self) -&gt; Formulae:
@@ -214,7 +272,7 @@ class GUISettings:
 
     @property
     def freezing_singular(self):
-        return self.ui_freezing[&#39;model&#39;].value == &#39;singular&#39;
+        return self.ui_freezing[&#34;model&#34;].value == &#34;singular&#34;
 
     @property
     def grid(self):
@@ -243,6 +301,14 @@ class GUISettings:
     @property
     def coalescence_adaptive(self):
         return self.ui_coalescence_adaptive.value
+
+    @property
+    def displacement_rtol(self):
+        return 10**self.ui_displacement_rtol.value
+
+    @property
+    def displacement_adaptive(self):
+        return self.ui_displacement_adaptive.value
 
     @property
     def processes(self):
@@ -284,44 +350,61 @@ class GUISettings:
         raise Exception()
 
     def stream_function(self, xX, zZ, _):
-        assert hasattr(self.__settings, &#39;rhod_w_max&#39;)
+        assert hasattr(self.__settings, &#34;rhod_w_max&#34;)
         self.__settings.rhod_w_max = self.ui_rhod_w_max.value
         return self.__settings.stream_function(xX, zZ, _)
 
     @property
     def freezing_inp_spec(self):
-        if self.ui_freezing[&#39;INP surface&#39;].value == &#39;as dry surface&#39;:
+        if self.ui_freezing[&#34;INP surface&#34;].value == &#34;as dry surface&#34;:
             return None
-        if self.ui_freezing[&#39;INP surface&#39;].value == &#39;lognormal(A, sgm_g)&#39;:
+        if self.ui_freezing[&#34;INP surface&#34;].value == &#34;lognormal(A, sgm_g)&#34;:
             return Lognormal(
                 norm_factor=1,
-                m_mode=10**(self.ui_freezing[&#39;lognormal_log10_A_um2&#39;].value) * si.um**2,
-                s_geom=np.exp(self.ui_freezing[&#39;lognormal_ln_sgm_g&#39;].value)
+                m_mode=10 ** (self.ui_freezing[&#34;lognormal_log10_A_um2&#34;].value)
+                * si.um**2,
+                s_geom=np.exp(self.ui_freezing[&#34;lognormal_ln_sgm_g&#34;].value),
             )
         raise NotImplementedError()
 
     def box(self):
-        layout = Accordion(children=[
-            VBox([
-                self.ui_dth0,
-                self.ui_dqv0,
-                self.ui_kappa,
-                self.ui_rhod_w_max,
-                *self.ui_freezing.values()
-            ]),
-            VBox([*self.ui_processes]),
-            VBox([self.ui_nx, self.ui_nz, self.ui_sdpg, self.ui_dt, self.ui_simulation_time,
-                  self.ui_condensation_rtol_x, self.ui_condensation_rtol_thd,
-                  self.ui_condensation_adaptive, self.ui_coalescence_adaptive,
-                  *self.ui_mpdata_options]),
-            VBox([*self.ui_formulae_options]),
-            VBox([*self.ui_output_options.values()])
-        ])
-        layout.set_title(0, &#39;parameters&#39;)
-        layout.set_title(1, &#39;processes&#39;)
-        layout.set_title(2, &#39;discretisation&#39;)
-        layout.set_title(3, &#39;formulae&#39;)
-        layout.set_title(4, &#39;output&#39;)
+        layout = Accordion(
+            children=[
+                VBox(
+                    [
+                        self.ui_dth0,
+                        self.ui_dqv0,
+                        self.ui_kappa,
+                        self.ui_rhod_w_max,
+                        *self.ui_freezing.values(),
+                    ]
+                ),
+                VBox([*self.ui_processes]),
+                VBox(
+                    [
+                        self.ui_nx,
+                        self.ui_nz,
+                        self.ui_sdpg,
+                        self.ui_dt,
+                        self.ui_simulation_time,
+                        self.ui_condensation_rtol_x,
+                        self.ui_condensation_rtol_thd,
+                        self.ui_condensation_adaptive,
+                        self.ui_coalescence_adaptive,
+                        self.ui_displacement_rtol,
+                        self.ui_displacement_adaptive,
+                        *self.ui_mpdata_options,
+                    ]
+                ),
+                VBox([*self.ui_formulae_options]),
+                VBox([*self.ui_output_options.values()]),
+            ]
+        )
+        layout.set_title(0, &#34;parameters&#34;)
+        layout.set_title(1, &#34;processes&#34;)
+        layout.set_title(2, &#34;discretisation&#34;)
+        layout.set_title(3, &#34;formulae&#34;)
+        layout.set_title(4, &#34;output&#34;)
 
         layout.observe(self.hide_and_show, names=&#34;selected_index&#34;)
         self.hide_and_show()
@@ -329,7 +412,7 @@ class GUISettings:
         return layout
 
     def hide_and_show(self, _=None):
-        freezing_enabled = self.processes[&#39;freezing&#39;]
+        freezing_enabled = self.processes[&#34;freezing&#34;]
         for widget in self.ui_freezing.values():
             set_visibility(widget, freezing_enabled)
 
@@ -338,7 +421,7 @@ def set_visibility(widget, visible):
     if visible:
         widget.layout = Layout()
     else:
-        widget.layout = Layout(visibility=&#39;hidden&#39;)</code></pre>
+        widget.layout = Layout(visibility=&#34;hidden&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -361,7 +444,7 @@ def set_visibility(widget, visible):
     if visible:
         widget.layout = Layout()
     else:
-        widget.layout = Layout(visibility=&#39;hidden&#39;)</code></pre>
+        widget.layout = Layout(visibility=&#34;hidden&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -387,70 +470,97 @@ def set_visibility(widget, visible):
         self.__settings = settings
 
         self.ui_dth0 = FloatSlider(
-            description=&#34;$\\Delta\\theta_0$ [K]&#34;, value=0, min=-15, max=15)
+            description=&#34;$\\Delta\\theta_0$ [K]&#34;, value=0, min=-15, max=15
+        )
         self.ui_dqv0 = FloatSlider(
-            description=&#34;$\\Delta q_{v0}$ [g/kg]&#34;, value=0, min=-6, max=6)
+            description=&#34;$\\Delta q_{v0}$ [g/kg]&#34;, value=0, min=-6, max=6
+        )
         self.ui_rhod_w_max = FloatSlider(
-            description=&#34;$\\rho_d w_{max}$&#34;, value=settings.rhod_w_max, min=.1, max=2, step=.1
+            description=&#34;$\\rho_d w_{max}$&#34;,
+            value=settings.rhod_w_max,
+            min=0.1,
+            max=2,
+            step=0.1,
         )
         self.ui_kappa = FloatSlider(
-            description=&#34;$\\kappa$ [1]&#34;, value=settings.kappa, min=0, max=1.5)
+            description=&#34;$\\kappa$ [1]&#34;, value=settings.kappa, min=0, max=1.5
+        )
 
         self.ui_freezing = {
-            &#39;model&#39;: RadioButtons(
-                options=(&#39;singular&#39;, &#39;time-dependent&#39;),
-                description=&#39;immersion frz&#39;,
-                layout={&#39;width&#39;: &#39;max-content&#39;}
+            &#34;model&#34;: RadioButtons(
+                options=(&#34;singular&#34;, &#34;time-dependent&#34;),
+                description=&#34;immersion frz&#34;,
+                layout={&#34;width&#34;: &#34;max-content&#34;},
             ),
-            &#39;INP surface&#39;: RadioButtons(
-                options=(&#39;as dry surface&#39;, &#39;lognormal(A, sgm_g)&#39;),
-                description=&#39;INP surface&#39;
+            &#34;INP surface&#34;: RadioButtons(
+                options=(&#34;as dry surface&#34;, &#34;lognormal(A, sgm_g)&#34;),
+                description=&#34;INP surface&#34;,
             ),
-            &#39;lognormal_log10_A_um2&#39;: FloatSlider(
-                description=&#39;log10(A/$μm^2$)&#39;, min=-3, max=1, step=.5
+            &#34;lognormal_log10_A_um2&#34;: FloatSlider(
+                description=&#34;log10(A/$μm^2$)&#34;, min=-3, max=1, step=0.5
             ),
-            &#39;lognormal_ln_sgm_g&#39;: FloatSlider(
-                description=&#39;ln(sgm_g)&#39;, min=.5, max=3, step=.5
+            &#34;lognormal_ln_sgm_g&#34;: FloatSlider(
+                description=&#34;ln(sgm_g)&#34;, min=0.5, max=3, step=0.5
             ),
-            &#39;ABIFM fit&#39;: Dropdown(
-                description=&#39;ABIFM fit&#39;, options=(&#39;Nonadecanol&#39;,)
+            &#34;ABIFM fit&#34;: Dropdown(description=&#34;ABIFM fit&#34;, options=(&#34;Nonadecanol&#34;,)),
+            &#34;INAS fit&#34;: Dropdown(
+                description=&#34;INAS fit&#34;, options=(&#34;Niemand et al. 2012&#34;,)
             ),
-            &#39;INAS fit&#39;: Dropdown(
-                description=&#39;INAS fit&#39;, options=(&#39;Niemand et al. 2012&#39;,)
-            )
         }
         # TODO #599 cool rate product + sing/tdep diff prod
 
-        self.ui_nx = IntSlider(value=settings.grid[0], min=10, max=100, description=&#34;nx&#34;)
-        self.ui_nz = IntSlider(value=settings.grid[1], min=10, max=100, description=&#34;nz&#34;)
-        self.ui_dt = FloatSlider(value=settings.dt, min=.5, max=60, description=&#34;dt (Eulerian)&#34;)
+        self.ui_nx = IntSlider(
+            value=settings.grid[0], min=10, max=100, description=&#34;nx&#34;
+        )
+        self.ui_nz = IntSlider(
+            value=settings.grid[1], min=10, max=100, description=&#34;nz&#34;
+        )
+        self.ui_dt = FloatSlider(
+            value=settings.dt, min=0.5, max=60, description=&#34;dt (Eulerian)&#34;
+        )
         self.ui_simulation_time = IntSlider(
             value=settings.simulation_time,
             min=1800,
             max=7200,
-            description=&#34;simulation time $[s]$&#34;)
+            description=&#34;simulation time $[s]$&#34;,
+        )
         self.ui_condensation_rtol_x = IntSlider(
             value=np.log10(settings.condensation_rtol_thd),
             min=-9,
             max=-3,
-            description=&#34;log$_{10}$(rtol$_x$)&#34;)
+            description=&#34;log$_{10}$(rtol$_x$)&#34;,
+        )
         self.ui_condensation_rtol_thd = IntSlider(
             value=np.log10(settings.condensation_rtol_thd),
             min=-9,
             max=-3,
-            description=&#34;log$_{10}$(rtol$_\\theta$)&#34;)
+            description=&#34;log$_{10}$(rtol$_\\theta$)&#34;,
+        )
         self.ui_condensation_adaptive = Checkbox(
             value=settings.condensation_adaptive,
-            description=&#39;condensation adaptive time-step&#39;)
+            description=&#34;condensation adaptive time-step&#34;,
+        )
         self.ui_coalescence_adaptive = Checkbox(
             value=settings.condensation_adaptive,
-            description=&#39;coalescence adaptive time-step&#39;)
+            description=&#34;coalescence adaptive time-step&#34;,
+        )
+        self.ui_displacement_rtol = IntSlider(
+            value=np.log10(settings.displacement_rtol),
+            min=-3,
+            max=0,
+            description=&#34;log$_{10}$(rtol)&#34;,
+        )
+        self.ui_displacement_adaptive = Checkbox(
+            value=settings.displacement_adaptive,
+            description=&#34;displacement adaptive time-step&#34;,
+        )
         self.ui_processes = [
             Checkbox(value=settings.processes[key], description=key)
             for key in settings.processes.keys()
         ]
-        self.ui_sdpg = IntSlider(value=settings.n_sd_per_gridbox,
-                                 description=&#34;n_sd/gridbox&#34;, min=1, max=1000)
+        self.ui_sdpg = IntSlider(
+            value=settings.n_sd_per_gridbox, description=&#34;n_sd/gridbox&#34;, min=1, max=1000
+        )
         self.fct_description = &#34;MPDATA: flux-corrected transport option&#34;
         self.tot_description = &#34;MPDATA: third-order terms option&#34;
         self.iga_description = &#34;MPDATA: infinite gauge option&#34;
@@ -459,39 +569,58 @@ def set_visibility(widget, visible):
             Checkbox(value=settings.mpdata_fct, description=self.fct_description),
             Checkbox(value=settings.mpdata_tot, description=self.tot_description),
             Checkbox(value=settings.mpdata_iga, description=self.iga_description),
-            IntSlider(value=settings.mpdata_iters, description=self.nit_description, min=1, max=5)
+            IntSlider(
+                value=settings.mpdata_iters,
+                description=self.nit_description,
+                min=1,
+                max=5,
+            ),
         ]
         self.ui_formulae_options = [
             Dropdown(
                 description=k,
                 options=formulae._choices(getattr(physics, k)).keys(),
-                value=v.default
+                value=v.default,
             )
             for k, v in inspect.signature(Formulae.__init__).parameters.items()
-            if k not in (&#39;self&#39;, &#39;fastmath&#39;, &#39;seed&#39;, &#39;constants&#39;)
+            if k not in (&#34;self&#34;, &#34;fastmath&#34;, &#34;seed&#34;, &#34;constants&#34;)
         ]
         self.ui_formulae_options.append(
             Checkbox(
-                value=inspect.signature(Formulae.__init__).parameters[&#39;fastmath&#39;].default,
-                description=&#39;fastmath&#39;
+                value=inspect.signature(Formulae.__init__)
+                .parameters[&#34;fastmath&#34;]
+                .default,
+                description=&#34;fastmath&#34;,
             )
         )
         self.ui_output_options = {
-            &#39;interval&#39;: IntSlider(description=&#39;interval [s]&#39;,
-                                  value=settings.output_interval, min=30, max=60*15),
-            &#39;aerosol_radius_threshold&#39;: FloatSlider(
-                description=&#39;aerosol/cloud threshold [um]&#39;,
+            &#34;interval&#34;: IntSlider(
+                description=&#34;interval [s]&#34;,
+                value=settings.output_interval,
+                min=30,
+                max=60 * 15,
+            ),
+            &#34;aerosol_radius_threshold&#34;: FloatSlider(
+                description=&#34;aerosol/cloud threshold [um]&#34;,
                 value=settings.aerosol_radius_threshold / physics.si.um,
-                min=.1, max=1, step=.1),
-            &#39;drizzle_radius_threshold&#39;: IntSlider(
-                description=&#39;cloud/drizzle threshold [um]&#39;,
+                min=0.1,
+                max=1,
+                step=0.1,
+            ),
+            &#34;drizzle_radius_threshold&#34;: IntSlider(
+                description=&#34;cloud/drizzle threshold [um]&#34;,
                 value=settings.drizzle_radius_threshold / physics.si.um,
-                min=10, max=100, step=5)
+                min=10,
+                max=100,
+                step=5,
+            ),
         }
 
         self.r_bins_edges = settings.r_bins_edges
         self.T_bins_edges = settings.T_bins_edges
-        self.terminal_velocity_radius_bin_edges = settings.terminal_velocity_radius_bin_edges
+        self.terminal_velocity_radius_bin_edges = (
+            settings.terminal_velocity_radius_bin_edges
+        )
 
         self.size = settings.size
         self.condensation_substeps = settings.condensation_substeps
@@ -503,7 +632,7 @@ def set_visibility(widget, visible):
         self.coalescence_optimized_random = settings.coalescence_optimized_random
         self.coalescence_substeps = settings.coalescence_substeps
 
-        for attr in (&#39;rhod_of_zZ&#39;, &#39;versions&#39;, &#39;n_spin_up&#39;):
+        for attr in (&#34;rhod_of_zZ&#34;, &#34;versions&#34;, &#34;n_spin_up&#34;):
             setattr(self, attr, getattr(settings, attr))
 
     @property
@@ -516,22 +645,25 @@ def set_visibility(widget, visible):
 
     @property
     def initial_dry_potential_temperature_profile(self):
-        return np.full(self.grid[-1], self.formulae.state_variable_triplet.th_dry(
-            self.__settings.th_std0 + self.ui_dth0.value,
-            self.__settings.qv0 + self.ui_dqv0.value / 1000
-        ))
+        return np.full(
+            self.grid[-1],
+            self.formulae.state_variable_triplet.th_dry(
+                self.__settings.th_std0 + self.ui_dth0.value,
+                self.__settings.qv0 + self.ui_dqv0.value / 1000,
+            ),
+        )
 
     @property
     def aerosol_radius_threshold(self):
-        return self.ui_output_options[&#39;aerosol_radius_threshold&#39;].value * physics.si.um
+        return self.ui_output_options[&#34;aerosol_radius_threshold&#34;].value * physics.si.um
 
     @property
     def drizzle_radius_threshold(self):
-        return self.ui_output_options[&#39;drizzle_radius_threshold&#39;].value * physics.si.um
+        return self.ui_output_options[&#34;drizzle_radius_threshold&#34;].value * physics.si.um
 
     @property
     def output_interval(self):
-        return self.ui_output_options[&#39;interval&#39;].value
+        return self.ui_output_options[&#34;interval&#34;].value
 
     @property
     def formulae(self) -&gt; Formulae:
@@ -557,7 +689,7 @@ def set_visibility(widget, visible):
 
     @property
     def freezing_singular(self):
-        return self.ui_freezing[&#39;model&#39;].value == &#39;singular&#39;
+        return self.ui_freezing[&#34;model&#34;].value == &#34;singular&#34;
 
     @property
     def grid(self):
@@ -586,6 +718,14 @@ def set_visibility(widget, visible):
     @property
     def coalescence_adaptive(self):
         return self.ui_coalescence_adaptive.value
+
+    @property
+    def displacement_rtol(self):
+        return 10**self.ui_displacement_rtol.value
+
+    @property
+    def displacement_adaptive(self):
+        return self.ui_displacement_adaptive.value
 
     @property
     def processes(self):
@@ -627,44 +767,61 @@ def set_visibility(widget, visible):
         raise Exception()
 
     def stream_function(self, xX, zZ, _):
-        assert hasattr(self.__settings, &#39;rhod_w_max&#39;)
+        assert hasattr(self.__settings, &#34;rhod_w_max&#34;)
         self.__settings.rhod_w_max = self.ui_rhod_w_max.value
         return self.__settings.stream_function(xX, zZ, _)
 
     @property
     def freezing_inp_spec(self):
-        if self.ui_freezing[&#39;INP surface&#39;].value == &#39;as dry surface&#39;:
+        if self.ui_freezing[&#34;INP surface&#34;].value == &#34;as dry surface&#34;:
             return None
-        if self.ui_freezing[&#39;INP surface&#39;].value == &#39;lognormal(A, sgm_g)&#39;:
+        if self.ui_freezing[&#34;INP surface&#34;].value == &#34;lognormal(A, sgm_g)&#34;:
             return Lognormal(
                 norm_factor=1,
-                m_mode=10**(self.ui_freezing[&#39;lognormal_log10_A_um2&#39;].value) * si.um**2,
-                s_geom=np.exp(self.ui_freezing[&#39;lognormal_ln_sgm_g&#39;].value)
+                m_mode=10 ** (self.ui_freezing[&#34;lognormal_log10_A_um2&#34;].value)
+                * si.um**2,
+                s_geom=np.exp(self.ui_freezing[&#34;lognormal_ln_sgm_g&#34;].value),
             )
         raise NotImplementedError()
 
     def box(self):
-        layout = Accordion(children=[
-            VBox([
-                self.ui_dth0,
-                self.ui_dqv0,
-                self.ui_kappa,
-                self.ui_rhod_w_max,
-                *self.ui_freezing.values()
-            ]),
-            VBox([*self.ui_processes]),
-            VBox([self.ui_nx, self.ui_nz, self.ui_sdpg, self.ui_dt, self.ui_simulation_time,
-                  self.ui_condensation_rtol_x, self.ui_condensation_rtol_thd,
-                  self.ui_condensation_adaptive, self.ui_coalescence_adaptive,
-                  *self.ui_mpdata_options]),
-            VBox([*self.ui_formulae_options]),
-            VBox([*self.ui_output_options.values()])
-        ])
-        layout.set_title(0, &#39;parameters&#39;)
-        layout.set_title(1, &#39;processes&#39;)
-        layout.set_title(2, &#39;discretisation&#39;)
-        layout.set_title(3, &#39;formulae&#39;)
-        layout.set_title(4, &#39;output&#39;)
+        layout = Accordion(
+            children=[
+                VBox(
+                    [
+                        self.ui_dth0,
+                        self.ui_dqv0,
+                        self.ui_kappa,
+                        self.ui_rhod_w_max,
+                        *self.ui_freezing.values(),
+                    ]
+                ),
+                VBox([*self.ui_processes]),
+                VBox(
+                    [
+                        self.ui_nx,
+                        self.ui_nz,
+                        self.ui_sdpg,
+                        self.ui_dt,
+                        self.ui_simulation_time,
+                        self.ui_condensation_rtol_x,
+                        self.ui_condensation_rtol_thd,
+                        self.ui_condensation_adaptive,
+                        self.ui_coalescence_adaptive,
+                        self.ui_displacement_rtol,
+                        self.ui_displacement_adaptive,
+                        *self.ui_mpdata_options,
+                    ]
+                ),
+                VBox([*self.ui_formulae_options]),
+                VBox([*self.ui_output_options.values()]),
+            ]
+        )
+        layout.set_title(0, &#34;parameters&#34;)
+        layout.set_title(1, &#34;processes&#34;)
+        layout.set_title(2, &#34;discretisation&#34;)
+        layout.set_title(3, &#34;formulae&#34;)
+        layout.set_title(4, &#34;output&#34;)
 
         layout.observe(self.hide_and_show, names=&#34;selected_index&#34;)
         self.hide_and_show()
@@ -672,7 +829,7 @@ def set_visibility(widget, visible):
         return layout
 
     def hide_and_show(self, _=None):
-        freezing_enabled = self.processes[&#39;freezing&#39;]
+        freezing_enabled = self.processes[&#34;freezing&#34;]
         for widget in self.ui_freezing.values():
             set_visibility(widget, freezing_enabled)</code></pre>
 </details>
@@ -687,7 +844,7 @@ def set_visibility(widget, visible):
 </summary>
 <pre><code class="python">@property
 def aerosol_radius_threshold(self):
-    return self.ui_output_options[&#39;aerosol_radius_threshold&#39;].value * physics.si.um</code></pre>
+    return self.ui_output_options[&#34;aerosol_radius_threshold&#34;].value * physics.si.um</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.coalescence_adaptive"><code class="name">var <span class="ident">coalescence_adaptive</span></code></dt>
@@ -738,6 +895,30 @@ def condensation_rtol_x(self):
     return 10**self.ui_condensation_rtol_x.value</code></pre>
 </details>
 </dd>
+<dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.displacement_adaptive"><code class="name">var <span class="ident">displacement_adaptive</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def displacement_adaptive(self):
+    return self.ui_displacement_adaptive.value</code></pre>
+</details>
+</dd>
+<dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.displacement_rtol"><code class="name">var <span class="ident">displacement_rtol</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def displacement_rtol(self):
+    return 10**self.ui_displacement_rtol.value</code></pre>
+</details>
+</dd>
 <dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.drizzle_radius_threshold"><code class="name">var <span class="ident">drizzle_radius_threshold</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -747,7 +928,7 @@ def condensation_rtol_x(self):
 </summary>
 <pre><code class="python">@property
 def drizzle_radius_threshold(self):
-    return self.ui_output_options[&#39;drizzle_radius_threshold&#39;].value * physics.si.um</code></pre>
+    return self.ui_output_options[&#34;drizzle_radius_threshold&#34;].value * physics.si.um</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.dt"><code class="name">var <span class="ident">dt</span></code></dt>
@@ -785,13 +966,14 @@ def formulae(self) -&gt; Formulae:
 </summary>
 <pre><code class="python">@property
 def freezing_inp_spec(self):
-    if self.ui_freezing[&#39;INP surface&#39;].value == &#39;as dry surface&#39;:
+    if self.ui_freezing[&#34;INP surface&#34;].value == &#34;as dry surface&#34;:
         return None
-    if self.ui_freezing[&#39;INP surface&#39;].value == &#39;lognormal(A, sgm_g)&#39;:
+    if self.ui_freezing[&#34;INP surface&#34;].value == &#34;lognormal(A, sgm_g)&#34;:
         return Lognormal(
             norm_factor=1,
-            m_mode=10**(self.ui_freezing[&#39;lognormal_log10_A_um2&#39;].value) * si.um**2,
-            s_geom=np.exp(self.ui_freezing[&#39;lognormal_ln_sgm_g&#39;].value)
+            m_mode=10 ** (self.ui_freezing[&#34;lognormal_log10_A_um2&#34;].value)
+            * si.um**2,
+            s_geom=np.exp(self.ui_freezing[&#34;lognormal_ln_sgm_g&#34;].value),
         )
     raise NotImplementedError()</code></pre>
 </details>
@@ -805,7 +987,7 @@ def freezing_inp_spec(self):
 </summary>
 <pre><code class="python">@property
 def freezing_singular(self):
-    return self.ui_freezing[&#39;model&#39;].value == &#39;singular&#39;</code></pre>
+    return self.ui_freezing[&#34;model&#34;].value == &#34;singular&#34;</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.grid"><code class="name">var <span class="ident">grid</span></code></dt>
@@ -829,10 +1011,13 @@ def grid(self):
 </summary>
 <pre><code class="python">@property
 def initial_dry_potential_temperature_profile(self):
-    return np.full(self.grid[-1], self.formulae.state_variable_triplet.th_dry(
-        self.__settings.th_std0 + self.ui_dth0.value,
-        self.__settings.qv0 + self.ui_dqv0.value / 1000
-    ))</code></pre>
+    return np.full(
+        self.grid[-1],
+        self.formulae.state_variable_triplet.th_dry(
+            self.__settings.th_std0 + self.ui_dth0.value,
+            self.__settings.qv0 + self.ui_dqv0.value / 1000,
+        ),
+    )</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.initial_vapour_mixing_ratio_profile"><code class="name">var <span class="ident">initial_vapour_mixing_ratio_profile</span></code></dt>
@@ -964,7 +1149,7 @@ def n_steps(self):
 </summary>
 <pre><code class="python">@property
 def output_interval(self):
-    return self.ui_output_options[&#39;interval&#39;].value</code></pre>
+    return self.ui_output_options[&#34;interval&#34;].value</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.output_steps"><code class="name">var <span class="ident">output_steps</span> : numpy.ndarray</code></dt>
@@ -1031,27 +1216,43 @@ def steps_per_output_interval(self) -&gt; int:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def box(self):
-    layout = Accordion(children=[
-        VBox([
-            self.ui_dth0,
-            self.ui_dqv0,
-            self.ui_kappa,
-            self.ui_rhod_w_max,
-            *self.ui_freezing.values()
-        ]),
-        VBox([*self.ui_processes]),
-        VBox([self.ui_nx, self.ui_nz, self.ui_sdpg, self.ui_dt, self.ui_simulation_time,
-              self.ui_condensation_rtol_x, self.ui_condensation_rtol_thd,
-              self.ui_condensation_adaptive, self.ui_coalescence_adaptive,
-              *self.ui_mpdata_options]),
-        VBox([*self.ui_formulae_options]),
-        VBox([*self.ui_output_options.values()])
-    ])
-    layout.set_title(0, &#39;parameters&#39;)
-    layout.set_title(1, &#39;processes&#39;)
-    layout.set_title(2, &#39;discretisation&#39;)
-    layout.set_title(3, &#39;formulae&#39;)
-    layout.set_title(4, &#39;output&#39;)
+    layout = Accordion(
+        children=[
+            VBox(
+                [
+                    self.ui_dth0,
+                    self.ui_dqv0,
+                    self.ui_kappa,
+                    self.ui_rhod_w_max,
+                    *self.ui_freezing.values(),
+                ]
+            ),
+            VBox([*self.ui_processes]),
+            VBox(
+                [
+                    self.ui_nx,
+                    self.ui_nz,
+                    self.ui_sdpg,
+                    self.ui_dt,
+                    self.ui_simulation_time,
+                    self.ui_condensation_rtol_x,
+                    self.ui_condensation_rtol_thd,
+                    self.ui_condensation_adaptive,
+                    self.ui_coalescence_adaptive,
+                    self.ui_displacement_rtol,
+                    self.ui_displacement_adaptive,
+                    *self.ui_mpdata_options,
+                ]
+            ),
+            VBox([*self.ui_formulae_options]),
+            VBox([*self.ui_output_options.values()]),
+        ]
+    )
+    layout.set_title(0, &#34;parameters&#34;)
+    layout.set_title(1, &#34;processes&#34;)
+    layout.set_title(2, &#34;discretisation&#34;)
+    layout.set_title(3, &#34;formulae&#34;)
+    layout.set_title(4, &#34;output&#34;)
 
     layout.observe(self.hide_and_show, names=&#34;selected_index&#34;)
     self.hide_and_show()
@@ -1069,7 +1270,7 @@ def steps_per_output_interval(self) -&gt; int:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def hide_and_show(self, _=None):
-    freezing_enabled = self.processes[&#39;freezing&#39;]
+    freezing_enabled = self.processes[&#34;freezing&#34;]
     for widget in self.ui_freezing.values():
         set_visibility(widget, freezing_enabled)</code></pre>
 </details>
@@ -1084,7 +1285,7 @@ def steps_per_output_interval(self) -&gt; int:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def stream_function(self, xX, zZ, _):
-    assert hasattr(self.__settings, &#39;rhod_w_max&#39;)
+    assert hasattr(self.__settings, &#34;rhod_w_max&#34;)
     self.__settings.rhod_w_max = self.ui_rhod_w_max.value
     return self.__settings.stream_function(xX, zZ, _)</code></pre>
 </details>
@@ -1121,6 +1322,8 @@ def steps_per_output_interval(self) -&gt; int:
 <li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.condensation_adaptive" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.condensation_adaptive">condensation_adaptive</a></code></li>
 <li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.condensation_rtol_thd" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.condensation_rtol_thd">condensation_rtol_thd</a></code></li>
 <li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.condensation_rtol_x" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.condensation_rtol_x">condensation_rtol_x</a></code></li>
+<li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.displacement_adaptive" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.displacement_adaptive">displacement_adaptive</a></code></li>
+<li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.displacement_rtol" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.displacement_rtol">displacement_rtol</a></code></li>
 <li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.drizzle_radius_threshold" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.drizzle_radius_threshold">drizzle_radius_threshold</a></code></li>
 <li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.dt" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.dt">dt</a></code></li>
 <li><code><a title="PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.formulae" href="#PySDM_examples.Szumowski_et_al_1998.gui_settings.GUISettings.formulae">formulae</a></code></li>

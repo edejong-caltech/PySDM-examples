@@ -27,18 +27,25 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def label(settings):
-    lbl = str({k.replace(&#39;condensation_&#39;, &#39;&#39;):
-               f&#34;{v:.1e}&#34; if isinstance(v, float) else
-               str(v).zfill(2) if isinstance(v, int) else
-               v for k, v in settings.items()})
-    return lbl\
-        .replace(&#39;{&#39;, &#39;&#39;)\
-        .replace(&#39;}&#39;, &#39;&#39;)\
-        .replace(&#34;&#39;&#34;, &#39;&#39;)\
-        .replace(&#39;True&#39;, &#39;T&#39;)\
-        .replace(&#39;False&#39;, &#39;F&#39;)\
-        .replace(&#39;_thd&#39;, &#39;$_{th}$&#39;)\
-        .replace(&#39;e-0&#39;, &#39;e-&#39;)</code></pre>
+    lbl = str(
+        {
+            k.replace(&#34;condensation_&#34;, &#34;&#34;): f&#34;{v:.1e}&#34;
+            if isinstance(v, float)
+            else str(v).zfill(2)
+            if isinstance(v, int)
+            else v
+            for k, v in settings.items()
+        }
+    )
+    return (
+        lbl.replace(&#34;{&#34;, &#34;&#34;)
+        .replace(&#34;}&#34;, &#34;&#34;)
+        .replace(&#34;&#39;&#34;, &#34;&#34;)
+        .replace(&#34;True&#34;, &#34;T&#34;)
+        .replace(&#34;False&#34;, &#34;F&#34;)
+        .replace(&#34;_thd&#34;, &#34;$_{th}$&#34;)
+        .replace(&#34;e-0&#34;, &#34;e-&#34;)
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -58,18 +65,25 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def label(settings):
-    lbl = str({k.replace(&#39;condensation_&#39;, &#39;&#39;):
-               f&#34;{v:.1e}&#34; if isinstance(v, float) else
-               str(v).zfill(2) if isinstance(v, int) else
-               v for k, v in settings.items()})
-    return lbl\
-        .replace(&#39;{&#39;, &#39;&#39;)\
-        .replace(&#39;}&#39;, &#39;&#39;)\
-        .replace(&#34;&#39;&#34;, &#39;&#39;)\
-        .replace(&#39;True&#39;, &#39;T&#39;)\
-        .replace(&#39;False&#39;, &#39;F&#39;)\
-        .replace(&#39;_thd&#39;, &#39;$_{th}$&#39;)\
-        .replace(&#39;e-0&#39;, &#39;e-&#39;)</code></pre>
+    lbl = str(
+        {
+            k.replace(&#34;condensation_&#34;, &#34;&#34;): f&#34;{v:.1e}&#34;
+            if isinstance(v, float)
+            else str(v).zfill(2)
+            if isinstance(v, int)
+            else v
+            for k, v in settings.items()
+        }
+    )
+    return (
+        lbl.replace(&#34;{&#34;, &#34;&#34;)
+        .replace(&#34;}&#34;, &#34;&#34;)
+        .replace(&#34;&#39;&#34;, &#34;&#34;)
+        .replace(&#34;True&#34;, &#34;T&#34;)
+        .replace(&#34;False&#34;, &#34;F&#34;)
+        .replace(&#34;_thd&#34;, &#34;$_{th}$&#34;)
+        .replace(&#34;e-0&#34;, &#34;e-&#34;)
+    )</code></pre>
 </details>
 </dd>
 </dl>

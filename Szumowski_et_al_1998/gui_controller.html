@@ -26,12 +26,14 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from time import sleep
-import shutil
-from threading import Thread
+<pre><code class="python">import shutil
 from tempfile import TemporaryDirectory
+from threading import Thread
+from time import sleep
+
 from PySDM.exporters import VTKExporter
-from PySDM_examples.utils.widgets import FloatProgress, Button, HBox, Checkbox
+
+from PySDM_examples.utils.widgets import Button, Checkbox, FloatProgress, HBox
 
 
 class GUIController:
@@ -39,7 +41,9 @@ class GUIController:
         self.progress = FloatProgress(value=0.0, min=0.0, max=1.0)
         self.button = Button()
         self.link = HBox()
-        self.checkbox = Checkbox(description=&#39;VTK output&#39;, indent=False, layout={&#39;width&#39;: &#39;125px&#39;})
+        self.checkbox = Checkbox(
+            description=&#34;VTK output&#34;, indent=False, layout={&#34;width&#34;: &#34;125px&#34;}
+        )
         self.panic = False
         self.thread = None
         self.simulator = simulator
@@ -61,24 +65,24 @@ class GUIController:
         else:
             self._setup_save()
         self.panic = False
-        self.progress.description = &#39; &#39;
+        self.progress.description = &#34; &#34;
 
     def reinit(self, _=None):
         self.panic = True
         self._setup_play()
         self.progress.value = 0
-        self.progress.description = &#39; &#39;
+        self.progress.description = &#34; &#34;
         self.viewer.clear()
         self.link.children = ()
         self.vtk_exporter = None
 
     def box(self):
         netcdf_box = Checkbox(
-            description=&#39;netCDF output&#39;,
+            description=&#34;netCDF output&#34;,
             disabled=True,
             value=True,
             indent=False,
-            layout={&#39;width&#39;: &#39;125px&#39;}
+            layout={&#34;width&#34;: &#34;125px&#34;},
         )
         return HBox([self.progress, self.button, netcdf_box, self.checkbox, self.link])
 
@@ -89,20 +93,20 @@ class GUIController:
         self.button.on_click(self._handle_stop, remove=True)
         self.button.on_click(self._handle_save, remove=True)
         self.button.on_click(self._handle_play)
-        self.button.icon = &#39;play&#39;
-        self.button.description = &#39;start simulation&#39;
+        self.button.icon = &#34;play&#34;
+        self.button.description = &#34;start simulation&#34;
         self.checkbox.disabled = False
 
     def _setup_stop(self):
         self.button.on_click(self._handle_play, remove=True)
         self.button.on_click(self._handle_save, remove=True)
         self.button.on_click(self._handle_stop)
-        self.button.icon = &#39;stop&#39;
-        self.button.description = &#39;interrupt&#39;
+        self.button.icon = &#34;stop&#34;
+        self.button.description = &#34;interrupt&#34;
 
     def _setup_save(self):
-        self.button.icon = &#39;download&#39;
-        self.button.description = &#39;save output&#39;
+        self.button.icon = &#34;download&#34;
+        self.button.description = &#34;save output&#34;
         self.button.on_click(self._handle_stop, remove=True)
         self.button.on_click(self._handle_save)
 
@@ -117,7 +121,7 @@ class GUIController:
 
         self.link.children = ()
         self.progress.value = 0
-        self.progress.description = &#39;initialisation&#39;
+        self.progress.description = &#34;initialisation&#34;
         self.checkbox.disabled = True
 
         if self.checkbox.value:
@@ -128,7 +132,7 @@ class GUIController:
 
         self.simulator.reinit()
         self.thread.start()
-        self.progress.description = &#39;running&#39;
+        self.progress.description = &#34;running&#34;
         self.viewer.reinit(self.simulator.products)
 
     def _handle_save(self, _):
@@ -136,13 +140,20 @@ class GUIController:
             controller.progress.value = 0
             if self.checkbox.value:
                 self.vtk_exporter.write_pvd()
-                controller.progress.description = &#39;VTK...&#39;
-                shutil.make_archive(self.vtk_file.absolute_path[:-4], &#39;zip&#39;, self.vtk_exporter.path)
-            controller.progress.description = &#39;netCDF...&#39;
+                controller.progress.description = &#34;VTK...&#34;
+                shutil.make_archive(
+                    self.vtk_file.absolute_path[:-4], &#34;zip&#34;, self.vtk_exporter.path
+                )
+            controller.progress.description = &#34;netCDF...&#34;
             self.ncdf_exporter.run(controller)
-            controller.link.children = \
-                (self.ncdf_file.make_link_widget(),) if not self.checkbox.value else \
-                (self.ncdf_file.make_link_widget(), self.vtk_file.make_link_widget())
+            controller.link.children = (
+                (self.ncdf_file.make_link_widget(),)
+                if not self.checkbox.value
+                else (
+                    self.ncdf_file.make_link_widget(),
+                    self.vtk_file.make_link_widget(),
+                )
+            )
 
         self.thread = Thread(target=task, args=(self,))
         self.thread.start()
@@ -173,7 +184,9 @@ class GUIController:
         self.progress = FloatProgress(value=0.0, min=0.0, max=1.0)
         self.button = Button()
         self.link = HBox()
-        self.checkbox = Checkbox(description=&#39;VTK output&#39;, indent=False, layout={&#39;width&#39;: &#39;125px&#39;})
+        self.checkbox = Checkbox(
+            description=&#34;VTK output&#34;, indent=False, layout={&#34;width&#34;: &#34;125px&#34;}
+        )
         self.panic = False
         self.thread = None
         self.simulator = simulator
@@ -195,24 +208,24 @@ class GUIController:
         else:
             self._setup_save()
         self.panic = False
-        self.progress.description = &#39; &#39;
+        self.progress.description = &#34; &#34;
 
     def reinit(self, _=None):
         self.panic = True
         self._setup_play()
         self.progress.value = 0
-        self.progress.description = &#39; &#39;
+        self.progress.description = &#34; &#34;
         self.viewer.clear()
         self.link.children = ()
         self.vtk_exporter = None
 
     def box(self):
         netcdf_box = Checkbox(
-            description=&#39;netCDF output&#39;,
+            description=&#34;netCDF output&#34;,
             disabled=True,
             value=True,
             indent=False,
-            layout={&#39;width&#39;: &#39;125px&#39;}
+            layout={&#34;width&#34;: &#34;125px&#34;},
         )
         return HBox([self.progress, self.button, netcdf_box, self.checkbox, self.link])
 
@@ -223,20 +236,20 @@ class GUIController:
         self.button.on_click(self._handle_stop, remove=True)
         self.button.on_click(self._handle_save, remove=True)
         self.button.on_click(self._handle_play)
-        self.button.icon = &#39;play&#39;
-        self.button.description = &#39;start simulation&#39;
+        self.button.icon = &#34;play&#34;
+        self.button.description = &#34;start simulation&#34;
         self.checkbox.disabled = False
 
     def _setup_stop(self):
         self.button.on_click(self._handle_play, remove=True)
         self.button.on_click(self._handle_save, remove=True)
         self.button.on_click(self._handle_stop)
-        self.button.icon = &#39;stop&#39;
-        self.button.description = &#39;interrupt&#39;
+        self.button.icon = &#34;stop&#34;
+        self.button.description = &#34;interrupt&#34;
 
     def _setup_save(self):
-        self.button.icon = &#39;download&#39;
-        self.button.description = &#39;save output&#39;
+        self.button.icon = &#34;download&#34;
+        self.button.description = &#34;save output&#34;
         self.button.on_click(self._handle_stop, remove=True)
         self.button.on_click(self._handle_save)
 
@@ -251,7 +264,7 @@ class GUIController:
 
         self.link.children = ()
         self.progress.value = 0
-        self.progress.description = &#39;initialisation&#39;
+        self.progress.description = &#34;initialisation&#34;
         self.checkbox.disabled = True
 
         if self.checkbox.value:
@@ -262,7 +275,7 @@ class GUIController:
 
         self.simulator.reinit()
         self.thread.start()
-        self.progress.description = &#39;running&#39;
+        self.progress.description = &#34;running&#34;
         self.viewer.reinit(self.simulator.products)
 
     def _handle_save(self, _):
@@ -270,13 +283,20 @@ class GUIController:
             controller.progress.value = 0
             if self.checkbox.value:
                 self.vtk_exporter.write_pvd()
-                controller.progress.description = &#39;VTK...&#39;
-                shutil.make_archive(self.vtk_file.absolute_path[:-4], &#39;zip&#39;, self.vtk_exporter.path)
-            controller.progress.description = &#39;netCDF...&#39;
+                controller.progress.description = &#34;VTK...&#34;
+                shutil.make_archive(
+                    self.vtk_file.absolute_path[:-4], &#34;zip&#34;, self.vtk_exporter.path
+                )
+            controller.progress.description = &#34;netCDF...&#34;
             self.ncdf_exporter.run(controller)
-            controller.link.children = \
-                (self.ncdf_file.make_link_widget(),) if not self.checkbox.value else \
-                (self.ncdf_file.make_link_widget(), self.vtk_file.make_link_widget())
+            controller.link.children = (
+                (self.ncdf_file.make_link_widget(),)
+                if not self.checkbox.value
+                else (
+                    self.ncdf_file.make_link_widget(),
+                    self.vtk_file.make_link_widget(),
+                )
+            )
 
         self.thread = Thread(target=task, args=(self,))
         self.thread.start()
@@ -295,11 +315,11 @@ class GUIController:
 </summary>
 <pre><code class="python">def box(self):
     netcdf_box = Checkbox(
-        description=&#39;netCDF output&#39;,
+        description=&#34;netCDF output&#34;,
         disabled=True,
         value=True,
         indent=False,
-        layout={&#39;width&#39;: &#39;125px&#39;}
+        layout={&#34;width&#34;: &#34;125px&#34;},
     )
     return HBox([self.progress, self.button, netcdf_box, self.checkbox, self.link])</code></pre>
 </details>
@@ -317,7 +337,7 @@ class GUIController:
     self.panic = True
     self._setup_play()
     self.progress.value = 0
-    self.progress.description = &#39; &#39;
+    self.progress.description = &#34; &#34;
     self.viewer.clear()
     self.link.children = ()
     self.vtk_exporter = None</code></pre>

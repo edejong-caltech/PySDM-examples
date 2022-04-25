@@ -31,24 +31,29 @@
     svp = particulator.formulae.saturation_vapour_pressure
     const = particulator.formulae.constants
 
-    env[&#39;T&#39;] = T
-    env[&#39;a_w_ice&#39;] = svp.ice_Celsius(T - const.T0) / svp.pvs_Celsius(T - const.T0)
+    env[&#34;T&#34;] = T
+    env[&#34;a_w_ice&#34;] = svp.ice_Celsius(T - const.T0) / svp.pvs_Celsius(T - const.T0)
 
 
 def run_simulation(particulator, temperature_profile, n_steps):
-    output = {&#39;products&#39;: {k: [] for k in particulator.products.keys()}, &#39;attributes&#39;: []}
-    for step in range(n_steps+1):
+    output = {
+        &#34;products&#34;: {k: [] for k in particulator.products.keys()},
+        &#34;attributes&#34;: [],
+    }
+    for step in range(n_steps + 1):
         if step != 0:
-            update_thermo(particulator, T=temperature_profile((step - .5) * particulator.dt))
+            update_thermo(
+                particulator, T=temperature_profile((step - 0.5) * particulator.dt)
+            )
             particulator.run(step - particulator.n_steps)
             update_thermo(particulator, T=temperature_profile(step * particulator.dt))
         else:
-            output[&#39;spectrum&#39;] = {}
-            for k in (&#39;n&#39;, &#39;freezing temperature&#39;, &#39;immersed surface area&#39;):
+            output[&#34;spectrum&#34;] = {}
+            for k in (&#34;n&#34;, &#34;freezing temperature&#34;, &#34;immersed surface area&#34;):
                 if k in particulator.attributes:
-                    output[&#39;spectrum&#39;][k] = particulator.attributes[k].to_ndarray()
+                    output[&#34;spectrum&#34;][k] = particulator.attributes[k].to_ndarray()
         for k, v in particulator.products.items():
-            output[&#39;products&#39;][k].append(v.get()+0)
+            output[&#34;products&#34;][k].append(v.get() + 0)
     return output</code></pre>
 </details>
 </section>
@@ -69,19 +74,24 @@ def run_simulation(particulator, temperature_profile, n_steps):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def run_simulation(particulator, temperature_profile, n_steps):
-    output = {&#39;products&#39;: {k: [] for k in particulator.products.keys()}, &#39;attributes&#39;: []}
-    for step in range(n_steps+1):
+    output = {
+        &#34;products&#34;: {k: [] for k in particulator.products.keys()},
+        &#34;attributes&#34;: [],
+    }
+    for step in range(n_steps + 1):
         if step != 0:
-            update_thermo(particulator, T=temperature_profile((step - .5) * particulator.dt))
+            update_thermo(
+                particulator, T=temperature_profile((step - 0.5) * particulator.dt)
+            )
             particulator.run(step - particulator.n_steps)
             update_thermo(particulator, T=temperature_profile(step * particulator.dt))
         else:
-            output[&#39;spectrum&#39;] = {}
-            for k in (&#39;n&#39;, &#39;freezing temperature&#39;, &#39;immersed surface area&#39;):
+            output[&#34;spectrum&#34;] = {}
+            for k in (&#34;n&#34;, &#34;freezing temperature&#34;, &#34;immersed surface area&#34;):
                 if k in particulator.attributes:
-                    output[&#39;spectrum&#39;][k] = particulator.attributes[k].to_ndarray()
+                    output[&#34;spectrum&#34;][k] = particulator.attributes[k].to_ndarray()
         for k, v in particulator.products.items():
-            output[&#39;products&#39;][k].append(v.get()+0)
+            output[&#34;products&#34;][k].append(v.get() + 0)
     return output</code></pre>
 </details>
 </dd>
@@ -99,8 +109,8 @@ def run_simulation(particulator, temperature_profile, n_steps):
     svp = particulator.formulae.saturation_vapour_pressure
     const = particulator.formulae.constants
 
-    env[&#39;T&#39;] = T
-    env[&#39;a_w_ice&#39;] = svp.ice_Celsius(T - const.T0) / svp.pvs_Celsius(T - const.T0)</code></pre>
+    env[&#34;T&#34;] = T
+    env[&#34;a_w_ice&#34;] = svp.ice_Celsius(T - const.T0) / svp.pvs_Celsius(T - const.T0)</code></pre>
 </details>
 </dd>
 </dl>

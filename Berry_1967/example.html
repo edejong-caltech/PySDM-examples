@@ -27,23 +27,30 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import os
+
 import numpy as np
-from PySDM.dynamics.collisions.kernels import Geometric, Hydrodynamic, Electric
+from PySDM.dynamics.collisions.collision_kernels import (
+    Electric,
+    Geometric,
+    Hydrodynamic,
+)
 from PySDM.dynamics.terminal_velocity import gunn_and_kinzer
+
 from PySDM_examples.Berry_1967.settings import Settings
 from PySDM_examples.Berry_1967.spectrum_plotter import SpectrumPlotter
 from PySDM_examples.Shima_et_al_2009.example import run
 
 
 def main(plot: bool, save):
-    with np.errstate(all=&#39;ignore&#39;):
+    with np.errstate(all=&#34;ignore&#34;):
 
         u_term_approxs = (gunn_and_kinzer.Interpolation,)
-        dts = (1, 10, &#39;adaptive&#39;)
-        setup_prop = {Geometric: (0, 100, 200, 300, 400, 500, 600, 700, 750, 800, 850),
-                      Electric: (0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000),
-                      Hydrodynamic: (0, 1600, 1800, 2000, 2200)
-                      }
+        dts = (1, 10, &#34;adaptive&#34;)
+        setup_prop = {
+            Geometric: (0, 100, 200, 300, 400, 500, 600, 700, 750, 800, 850),
+            Electric: (0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000),
+            Hydrodynamic: (0, 1600, 1800, 2000, 2200),
+        }
         setups = {}
 
         for u_term_approx in u_term_approxs:
@@ -53,8 +60,8 @@ def main(plot: bool, save):
 
                 for kernel_type, steps in setup_prop.items():
                     s = Settings()
-                    s.dt = 10 if dt == &#39;adaptive&#39; else dt
-                    s.adaptive = dt == &#39;adaptive&#39;
+                    s.dt = 10 if dt == &#34;adaptive&#34; else dt
+                    s.adaptive = dt == &#34;adaptive&#34;
                     s.kernel = kernel_type()
                     s._steps = steps
                     setups[u_term_approx][dt][kernel_type] = s
@@ -76,15 +83,19 @@ def main(plot: bool, save):
                         plotter.plot(vals, step * setup[dt][kernel].dt)
                     if save is not None:
                         n_sd = setup[dt][kernel].n_sd
-                        plotter.save(save + &#34;/&#34; +
-                                     f&#34;{n_sd}_{u_term_approx.__name__}_{dt}_{kernel.__name__}&#34; +
-                                     &#34;.&#34; + plotter.format)
+                        plotter.save(
+                            save
+                            + &#34;/&#34;
+                            + f&#34;{n_sd}_{u_term_approx.__name__}_{dt}_{kernel.__name__}&#34;
+                            + &#34;.&#34;
+                            + plotter.format
+                        )
                     if plot:
                         plotter.show()
 
 
-if __name__ == &#39;__main__&#39;:
-    main(plot=&#39;CI&#39; not in os.environ, save=&#34;.&#34;)</code></pre>
+if __name__ == &#34;__main__&#34;:
+    main(plot=&#34;CI&#34; not in os.environ, save=&#34;.&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -104,14 +115,15 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def main(plot: bool, save):
-    with np.errstate(all=&#39;ignore&#39;):
+    with np.errstate(all=&#34;ignore&#34;):
 
         u_term_approxs = (gunn_and_kinzer.Interpolation,)
-        dts = (1, 10, &#39;adaptive&#39;)
-        setup_prop = {Geometric: (0, 100, 200, 300, 400, 500, 600, 700, 750, 800, 850),
-                      Electric: (0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000),
-                      Hydrodynamic: (0, 1600, 1800, 2000, 2200)
-                      }
+        dts = (1, 10, &#34;adaptive&#34;)
+        setup_prop = {
+            Geometric: (0, 100, 200, 300, 400, 500, 600, 700, 750, 800, 850),
+            Electric: (0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000),
+            Hydrodynamic: (0, 1600, 1800, 2000, 2200),
+        }
         setups = {}
 
         for u_term_approx in u_term_approxs:
@@ -121,8 +133,8 @@ if __name__ == &#39;__main__&#39;:
 
                 for kernel_type, steps in setup_prop.items():
                     s = Settings()
-                    s.dt = 10 if dt == &#39;adaptive&#39; else dt
-                    s.adaptive = dt == &#39;adaptive&#39;
+                    s.dt = 10 if dt == &#34;adaptive&#34; else dt
+                    s.adaptive = dt == &#34;adaptive&#34;
                     s.kernel = kernel_type()
                     s._steps = steps
                     setups[u_term_approx][dt][kernel_type] = s
@@ -144,9 +156,13 @@ if __name__ == &#39;__main__&#39;:
                         plotter.plot(vals, step * setup[dt][kernel].dt)
                     if save is not None:
                         n_sd = setup[dt][kernel].n_sd
-                        plotter.save(save + &#34;/&#34; +
-                                     f&#34;{n_sd}_{u_term_approx.__name__}_{dt}_{kernel.__name__}&#34; +
-                                     &#34;.&#34; + plotter.format)
+                        plotter.save(
+                            save
+                            + &#34;/&#34;
+                            + f&#34;{n_sd}_{u_term_approx.__name__}_{dt}_{kernel.__name__}&#34;
+                            + &#34;.&#34;
+                            + plotter.format
+                        )
                     if plot:
                         plotter.show()</code></pre>
 </details>

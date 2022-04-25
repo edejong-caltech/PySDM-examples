@@ -26,15 +26,19 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import numpy as np
+<pre><code class="python">import matplotlib
+import numpy as np
 from matplotlib import pyplot
-import matplotlib
 from PySDM.physics import si
+
 from PySDM_examples.UIUC_2021.frozen_fraction import FrozenFraction
 
-labels = {True: &#39;singular (Niemand et al. 2012)&#39;, False: &#39;time-dependent (ABIFM, illite)&#39;}
-colors = {True: &#39;black&#39;, False: &#39;teal&#39;}
-qi_unit = si.g / si.m ** 3
+labels = {
+    True: &#34;singular (Niemand et al. 2012)&#34;,
+    False: &#34;time-dependent (ABIFM, illite)&#34;,
+}
+colors = {True: &#34;black&#34;, False: &#34;teal&#34;}
+qi_unit = si.g / si.m**3
 
 
 def make_sampling_plot(data):
@@ -43,38 +47,41 @@ def make_sampling_plot(data):
     for i, v in enumerate(data):
         row = i % ensemble_n
         col = i // ensemble_n
-        if &#39;freezing temperature&#39; in v[&#39;spectrum&#39;]:
-            x = v[&#39;spectrum&#39;][&#39;freezing temperature&#39;]
-            axs[row, col].set_xlabel(&#39;$T_{fz}$&#39;)
+        if &#34;freezing temperature&#34; in v[&#34;spectrum&#34;]:
+            x = v[&#34;spectrum&#34;][&#34;freezing temperature&#34;]
+            axs[row, col].set_xlabel(&#34;$T_{fz}$&#34;)
             axs[row, col].invert_xaxis()
         else:
-            x = v[&#39;spectrum&#39;][&#39;immersed surface area&#39;]
-            axs[row, col].set_xlabel(&#39;$A$&#39;)
-        axs[row, col].stem(x, v[&#39;spectrum&#39;][&#39;n&#39;])
+            x = v[&#34;spectrum&#34;][&#34;immersed surface area&#34;]
+            axs[row, col].set_xlabel(&#34;$A$&#34;)
+        axs[row, col].stem(x, v[&#34;spectrum&#34;][&#34;n&#34;])
         axs[row, col].set_ylabel(&#34;n&#34;)
 
 
 def make_temperature_plot(data):
-    pyplot.xlabel(&#39;time [s]&#39;)
+    pyplot.xlabel(&#34;time [s]&#34;)
 
     xy1 = pyplot.gca()
 
-    xy1.set_ylabel(&#39;temperature [K]&#39;)
+    xy1.set_ylabel(&#34;temperature [K]&#34;)
     xy1.set_ylim(200, 300)
-    datum = data[0][&#39;products&#39;]
-    xy1.plot(datum[&#39;t&#39;], datum[&#39;T&#39;], marker=&#39;.&#39;, label=&#39;T&#39;, color=&#39;black&#39;)
+    datum = data[0][&#34;products&#34;]
+    xy1.plot(datum[&#34;t&#34;], datum[&#34;T&#34;], marker=&#34;.&#34;, label=&#34;T&#34;, color=&#34;black&#34;)
 
     xy2 = xy1.twinx()
     plotted = {singular: False for singular in (True, False)}
     for v in data:
-        datum = v[&#39;products&#39;]
+        datum = v[&#34;products&#34;]
         xy2.plot(
-            datum[&#39;t&#39;], np.asarray(datum[&#39;qi&#39;]) / qi_unit,  # marker=&#39;.&#39;,
-            label=f&#34;Monte-Carlo ({labels[v[&#39;singular&#39;]]})&#34; if not plotted[v[&#39;singular&#39;]] else &#39;&#39;,
-            color=colors[v[&#39;singular&#39;]]
+            datum[&#34;t&#34;],
+            np.asarray(datum[&#34;qi&#34;]) / qi_unit,  # marker=&#39;.&#39;,
+            label=f&#34;Monte-Carlo ({labels[v[&#39;singular&#39;]]})&#34;
+            if not plotted[v[&#34;singular&#34;]]
+            else &#34;&#34;,
+            color=colors[v[&#34;singular&#34;]],
         )
-        plotted[v[&#39;singular&#39;]] = True
-    xy2.set_ylabel(&#39;ice water content [g/m3]&#39;)
+        plotted[v[&#34;singular&#34;]] = True
+    xy2.set_ylabel(&#34;ice water content [g/m3]&#34;)
 
     xy1.grid()
     xy1.legend()  # bbox_to_anchor=(.2, 1.15))
@@ -84,48 +91,56 @@ def make_temperature_plot(data):
 def make_freezing_spec_plot(
     data, formulae, volume, droplet_volume, total_particle_number, surf_spec
 ):
-    pyplot.xlabel(&#39;temperature [K]&#39;)
+    pyplot.xlabel(&#34;temperature [K]&#34;)
     plotted = {singular: False for singular in (True, False)}
 
     prim = pyplot.gca()
     for v in data:
-        datum = v[&#39;products&#39;]
-        color = colors[v[&#39;singular&#39;]]
+        datum = v[&#34;products&#34;]
+        color = colors[v[&#34;singular&#34;]]
         prim.plot(
-            datum[&#39;T&#39;], np.asarray(datum[&#39;qi&#39;]) / qi_unit, marker=&#39;.&#39;, linewidth=.333,
-            label=f&#34;Monte-Carlo: {labels[v[&#39;singular&#39;]]}&#34; if not plotted[v[&#39;singular&#39;]] else &#39;&#39;,
-            color=color
+            datum[&#34;T&#34;],
+            np.asarray(datum[&#34;qi&#34;]) / qi_unit,
+            marker=&#34;.&#34;,
+            linewidth=0.333,
+            label=f&#34;Monte-Carlo: {labels[v[&#39;singular&#39;]]}&#34;
+            if not plotted[v[&#34;singular&#34;]]
+            else &#34;&#34;,
+            color=color,
         )
-        plotted[v[&#39;singular&#39;]] = True
+        plotted[v[&#34;singular&#34;]] = True
 
     ff = FrozenFraction(
         volume=volume,
         droplet_volume=droplet_volume,
         total_particle_number=total_particle_number,
-        rho_w=formulae.constants.rho_w
+        rho_w=formulae.constants.rho_w,
     )
-    twin = prim.secondary_yaxis(&#39;right&#39;, functions=(
-        lambda x: ff.qi2ff(x * qi_unit),
-        lambda x: ff.ff2qi(x) / qi_unit
-    ))
-    twin.set_ylabel(&#39;frozen fraction&#39;)
+    twin = prim.secondary_yaxis(
+        &#34;right&#34;,
+        functions=(lambda x: ff.qi2ff(x * qi_unit), lambda x: ff.ff2qi(x) / qi_unit),
+    )
+    twin.set_ylabel(&#34;frozen fraction&#34;)
 
-    T = np.linspace(max(datum[&#39;T&#39;]), min(datum[&#39;T&#39;]))
-    for multiplier, color in {.1: &#39;orange&#39;, 1: &#39;red&#39;, 10: &#39;brown&#39;}.items():
+    T = np.linspace(max(datum[&#34;T&#34;]), min(datum[&#34;T&#34;]))
+    for multiplier, color in {0.1: &#34;orange&#34;, 1: &#34;red&#34;, 10: &#34;brown&#34;}.items():
         prim.plot(
             T,
             ff.ff2qi(
-                formulae.freezing_temperature_spectrum.cdf(T, multiplier * surf_spec.median)
-            ) / qi_unit,
-            label=f&#39;singular CDF for {multiplier}x median surface&#39;,
+                formulae.freezing_temperature_spectrum.cdf(
+                    T, multiplier * surf_spec.median
+                )
+            )
+            / qi_unit,
+            label=f&#34;singular CDF for {multiplier}x median surface&#34;,
             linewidth=2.5,
             color=color,
-            linestyle=&#39;--&#39;
+            linestyle=&#34;--&#34;,
         )
     prim.set_title(f&#34;$σ_g$=exp({np.log(surf_spec.s_geom):.3g})&#34;)
-    prim.set_ylabel(&#39;ice water content [$g/m^3$]&#39;)
+    prim.set_ylabel(&#34;ice water content [$g/m^3$]&#34;)
     prim.set_xlim(T[0], T[-1])
-    prim.legend(bbox_to_anchor=(1.2, -.2))
+    prim.legend(bbox_to_anchor=(1.2, -0.2))
     prim.grid()
 
 
@@ -136,17 +151,22 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
     grid = np.meshgrid(T_space, A_space)
     sampled_pdf = Shima_T_fz(*grid) * A_spec.pdf(grid[1])
 
-    fig = pyplot.figure(figsize=(7, 6), )
+    fig = pyplot.figure(
+        figsize=(7, 6),
+    )
     ax = fig.add_subplot(111)
-    ax.set_xlabel(&#39;freezing temperature [K]&#39;)
-    ax.set_ylabel(&#39;insoluble surface [$μm^2$]&#39;)
-    cnt = ax.contourf(grid[0], grid[1] / si.um ** 2, sampled_pdf * si.um ** 2,
-                      norm=matplotlib.colors.LogNorm(),
-                      cmap=&#39;Blues&#39;,
-                      levels=np.logspace(-3, 0, 7)
-                      )
+    ax.set_xlabel(&#34;freezing temperature [K]&#34;)
+    ax.set_ylabel(&#34;insoluble surface [$μm^2$]&#34;)
+    cnt = ax.contourf(
+        grid[0],
+        grid[1] / si.um**2,
+        sampled_pdf * si.um**2,
+        norm=matplotlib.colors.LogNorm(),
+        cmap=&#34;Blues&#34;,
+        levels=np.logspace(-3, 0, 7),
+    )
     cbar = pyplot.colorbar(cnt)
-    cbar.set_label(&#39;pdf [$K^{-1} μm^{-2}$]&#39;)
+    cbar.set_label(&#34;pdf [$K^{-1} μm^{-2}$]&#34;)
     ax.set_title(f&#34;$σ_g$=exp({np.log(A_spec.s_geom):.3g})&#34;)
     pyplot.grid()</code></pre>
 </details>
@@ -170,48 +190,56 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
 <pre><code class="python">def make_freezing_spec_plot(
     data, formulae, volume, droplet_volume, total_particle_number, surf_spec
 ):
-    pyplot.xlabel(&#39;temperature [K]&#39;)
+    pyplot.xlabel(&#34;temperature [K]&#34;)
     plotted = {singular: False for singular in (True, False)}
 
     prim = pyplot.gca()
     for v in data:
-        datum = v[&#39;products&#39;]
-        color = colors[v[&#39;singular&#39;]]
+        datum = v[&#34;products&#34;]
+        color = colors[v[&#34;singular&#34;]]
         prim.plot(
-            datum[&#39;T&#39;], np.asarray(datum[&#39;qi&#39;]) / qi_unit, marker=&#39;.&#39;, linewidth=.333,
-            label=f&#34;Monte-Carlo: {labels[v[&#39;singular&#39;]]}&#34; if not plotted[v[&#39;singular&#39;]] else &#39;&#39;,
-            color=color
+            datum[&#34;T&#34;],
+            np.asarray(datum[&#34;qi&#34;]) / qi_unit,
+            marker=&#34;.&#34;,
+            linewidth=0.333,
+            label=f&#34;Monte-Carlo: {labels[v[&#39;singular&#39;]]}&#34;
+            if not plotted[v[&#34;singular&#34;]]
+            else &#34;&#34;,
+            color=color,
         )
-        plotted[v[&#39;singular&#39;]] = True
+        plotted[v[&#34;singular&#34;]] = True
 
     ff = FrozenFraction(
         volume=volume,
         droplet_volume=droplet_volume,
         total_particle_number=total_particle_number,
-        rho_w=formulae.constants.rho_w
+        rho_w=formulae.constants.rho_w,
     )
-    twin = prim.secondary_yaxis(&#39;right&#39;, functions=(
-        lambda x: ff.qi2ff(x * qi_unit),
-        lambda x: ff.ff2qi(x) / qi_unit
-    ))
-    twin.set_ylabel(&#39;frozen fraction&#39;)
+    twin = prim.secondary_yaxis(
+        &#34;right&#34;,
+        functions=(lambda x: ff.qi2ff(x * qi_unit), lambda x: ff.ff2qi(x) / qi_unit),
+    )
+    twin.set_ylabel(&#34;frozen fraction&#34;)
 
-    T = np.linspace(max(datum[&#39;T&#39;]), min(datum[&#39;T&#39;]))
-    for multiplier, color in {.1: &#39;orange&#39;, 1: &#39;red&#39;, 10: &#39;brown&#39;}.items():
+    T = np.linspace(max(datum[&#34;T&#34;]), min(datum[&#34;T&#34;]))
+    for multiplier, color in {0.1: &#34;orange&#34;, 1: &#34;red&#34;, 10: &#34;brown&#34;}.items():
         prim.plot(
             T,
             ff.ff2qi(
-                formulae.freezing_temperature_spectrum.cdf(T, multiplier * surf_spec.median)
-            ) / qi_unit,
-            label=f&#39;singular CDF for {multiplier}x median surface&#39;,
+                formulae.freezing_temperature_spectrum.cdf(
+                    T, multiplier * surf_spec.median
+                )
+            )
+            / qi_unit,
+            label=f&#34;singular CDF for {multiplier}x median surface&#34;,
             linewidth=2.5,
             color=color,
-            linestyle=&#39;--&#39;
+            linestyle=&#34;--&#34;,
         )
     prim.set_title(f&#34;$σ_g$=exp({np.log(surf_spec.s_geom):.3g})&#34;)
-    prim.set_ylabel(&#39;ice water content [$g/m^3$]&#39;)
+    prim.set_ylabel(&#34;ice water content [$g/m^3$]&#34;)
     prim.set_xlim(T[0], T[-1])
-    prim.legend(bbox_to_anchor=(1.2, -.2))
+    prim.legend(bbox_to_anchor=(1.2, -0.2))
     prim.grid()</code></pre>
 </details>
 </dd>
@@ -231,17 +259,22 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
     grid = np.meshgrid(T_space, A_space)
     sampled_pdf = Shima_T_fz(*grid) * A_spec.pdf(grid[1])
 
-    fig = pyplot.figure(figsize=(7, 6), )
+    fig = pyplot.figure(
+        figsize=(7, 6),
+    )
     ax = fig.add_subplot(111)
-    ax.set_xlabel(&#39;freezing temperature [K]&#39;)
-    ax.set_ylabel(&#39;insoluble surface [$μm^2$]&#39;)
-    cnt = ax.contourf(grid[0], grid[1] / si.um ** 2, sampled_pdf * si.um ** 2,
-                      norm=matplotlib.colors.LogNorm(),
-                      cmap=&#39;Blues&#39;,
-                      levels=np.logspace(-3, 0, 7)
-                      )
+    ax.set_xlabel(&#34;freezing temperature [K]&#34;)
+    ax.set_ylabel(&#34;insoluble surface [$μm^2$]&#34;)
+    cnt = ax.contourf(
+        grid[0],
+        grid[1] / si.um**2,
+        sampled_pdf * si.um**2,
+        norm=matplotlib.colors.LogNorm(),
+        cmap=&#34;Blues&#34;,
+        levels=np.logspace(-3, 0, 7),
+    )
     cbar = pyplot.colorbar(cnt)
-    cbar.set_label(&#39;pdf [$K^{-1} μm^{-2}$]&#39;)
+    cbar.set_label(&#34;pdf [$K^{-1} μm^{-2}$]&#34;)
     ax.set_title(f&#34;$σ_g$=exp({np.log(A_spec.s_geom):.3g})&#34;)
     pyplot.grid()</code></pre>
 </details>
@@ -261,14 +294,14 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
     for i, v in enumerate(data):
         row = i % ensemble_n
         col = i // ensemble_n
-        if &#39;freezing temperature&#39; in v[&#39;spectrum&#39;]:
-            x = v[&#39;spectrum&#39;][&#39;freezing temperature&#39;]
-            axs[row, col].set_xlabel(&#39;$T_{fz}$&#39;)
+        if &#34;freezing temperature&#34; in v[&#34;spectrum&#34;]:
+            x = v[&#34;spectrum&#34;][&#34;freezing temperature&#34;]
+            axs[row, col].set_xlabel(&#34;$T_{fz}$&#34;)
             axs[row, col].invert_xaxis()
         else:
-            x = v[&#39;spectrum&#39;][&#39;immersed surface area&#39;]
-            axs[row, col].set_xlabel(&#39;$A$&#39;)
-        axs[row, col].stem(x, v[&#39;spectrum&#39;][&#39;n&#39;])
+            x = v[&#34;spectrum&#34;][&#34;immersed surface area&#34;]
+            axs[row, col].set_xlabel(&#34;$A$&#34;)
+        axs[row, col].stem(x, v[&#34;spectrum&#34;][&#34;n&#34;])
         axs[row, col].set_ylabel(&#34;n&#34;)</code></pre>
 </details>
 </dd>
@@ -282,26 +315,29 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def make_temperature_plot(data):
-    pyplot.xlabel(&#39;time [s]&#39;)
+    pyplot.xlabel(&#34;time [s]&#34;)
 
     xy1 = pyplot.gca()
 
-    xy1.set_ylabel(&#39;temperature [K]&#39;)
+    xy1.set_ylabel(&#34;temperature [K]&#34;)
     xy1.set_ylim(200, 300)
-    datum = data[0][&#39;products&#39;]
-    xy1.plot(datum[&#39;t&#39;], datum[&#39;T&#39;], marker=&#39;.&#39;, label=&#39;T&#39;, color=&#39;black&#39;)
+    datum = data[0][&#34;products&#34;]
+    xy1.plot(datum[&#34;t&#34;], datum[&#34;T&#34;], marker=&#34;.&#34;, label=&#34;T&#34;, color=&#34;black&#34;)
 
     xy2 = xy1.twinx()
     plotted = {singular: False for singular in (True, False)}
     for v in data:
-        datum = v[&#39;products&#39;]
+        datum = v[&#34;products&#34;]
         xy2.plot(
-            datum[&#39;t&#39;], np.asarray(datum[&#39;qi&#39;]) / qi_unit,  # marker=&#39;.&#39;,
-            label=f&#34;Monte-Carlo ({labels[v[&#39;singular&#39;]]})&#34; if not plotted[v[&#39;singular&#39;]] else &#39;&#39;,
-            color=colors[v[&#39;singular&#39;]]
+            datum[&#34;t&#34;],
+            np.asarray(datum[&#34;qi&#34;]) / qi_unit,  # marker=&#39;.&#39;,
+            label=f&#34;Monte-Carlo ({labels[v[&#39;singular&#39;]]})&#34;
+            if not plotted[v[&#34;singular&#34;]]
+            else &#34;&#34;,
+            color=colors[v[&#34;singular&#34;]],
         )
-        plotted[v[&#39;singular&#39;]] = True
-    xy2.set_ylabel(&#39;ice water content [g/m3]&#39;)
+        plotted[v[&#34;singular&#34;]] = True
+    xy2.set_ylabel(&#34;ice water content [g/m3]&#34;)
 
     xy1.grid()
     xy1.legend()  # bbox_to_anchor=(.2, 1.15))

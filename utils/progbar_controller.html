@@ -26,12 +26,14 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from PySDM_examples.utils.widgets import display, FloatProgress
+<pre><code class="python">from PySDM_examples.utils.widgets import FloatProgress, display
 
 
 class ProgBarController:
-    def __init__(self, description=&#39;&#39;):
-        self.progress = FloatProgress(value=0.0, min=0.0, max=1.0, description=description)
+    def __init__(self, description=&#34;&#34;):
+        self.progress = FloatProgress(
+            value=0.0, min=0.0, max=1.0, description=description
+        )
         self.panic = False
 
     def __enter__(self):
@@ -65,8 +67,10 @@ class ProgBarController:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ProgBarController:
-    def __init__(self, description=&#39;&#39;):
-        self.progress = FloatProgress(value=0.0, min=0.0, max=1.0, description=description)
+    def __init__(self, description=&#34;&#34;):
+        self.progress = FloatProgress(
+            value=0.0, min=0.0, max=1.0, description=description
+        )
         self.panic = False
 
     def __enter__(self):

@@ -27,30 +27,37 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from typing import Union
-from packaging import version
-from matplotlib import pyplot
+
 import matplotlib
 import numpy as np
+from matplotlib import pyplot
+from packaging import version
 from PySDM import Builder, Formulae
+from PySDM.backends import CPU
 from PySDM.dynamics import Freezing
 from PySDM.environments import Box
-from PySDM.physics import constants as const
-from PySDM.initialisation.sampling import spectral_sampling
 from PySDM.initialisation import discretise_multiplicities
-from PySDM.products import IceWaterContent, TotalUnfrozenImmersedSurfaceArea
-from PySDM.backends import CPU
+from PySDM.initialisation.sampling import spectral_sampling
+from PySDM.physics import constants as const
 from PySDM.physics import si
+from PySDM.products import IceWaterContent, TotalUnfrozenImmersedSurfaceArea
 
 
 class Simulation:
     # note: dv and droplet_volume are dummy multipliers (multiplied and then divided by)
     #       will become used if coalescence or other processes are turned on
-    def __init__(self, *, cases, n_runs_per_case=10, multiplicity=1, time_step,
-                 droplet_volume=1 * si.um ** 3,
-                 heterogeneous_ice_nucleation_rate=&#39;Constant&#39;,
-                 total_time: Union[None, float] = None,
-                 temperature_range: Union[None, tuple] = None
-                 ):
+    def __init__(
+        self,
+        *,
+        cases,
+        n_runs_per_case=10,
+        multiplicity=1,
+        time_step,
+        droplet_volume=1 * si.um**3,
+        heterogeneous_ice_nucleation_rate=&#34;Constant&#34;,
+        total_time: Union[None, float] = None,
+        temperature_range: Union[None, tuple] = None,
+    ):
         self.cases = cases
         self.n_runs_per_case = n_runs_per_case
         self.multiplicity = multiplicity
@@ -71,58 +78,67 @@ class Simulation:
             if self.total_time is not None:
                 total_time = self.total_time
             else:
-                total_time = np.diff(np.asarray(self.temperature_range)) / case[&#39;cooling_rate&#39;]
+                total_time = (
+                    np.diff(np.asarray(self.temperature_range)) / case[&#34;cooling_rate&#34;]
+                )
 
             constants = None
-            if &#39;J_het&#39; not in case:
-                case[&#39;J_het&#39;] = None
-                constants = {
-                    &#39;ABIFM_C&#39;: case[&#39;ABIFM_c&#39;],
-                    &#39;ABIFM_M&#39;: case[&#39;ABIFM_m&#39;]
-                }
-            if &#39;cooling_rate&#39; not in case:
-                case[&#39;cooling_rate&#39;] = 0
-                constants = {&#39;J_HET&#39;: case[&#39;J_het&#39;]}
+            if &#34;J_het&#34; not in case:
+                case[&#34;J_het&#34;] = None
+                constants = {&#34;ABIFM_C&#34;: case[&#34;ABIFM_c&#34;], &#34;ABIFM_M&#34;: case[&#34;ABIFM_m&#34;]}
+            if &#34;cooling_rate&#34; not in case:
+                case[&#34;cooling_rate&#34;] = 0
+                constants = {&#34;J_HET&#34;: case[&#34;J_het&#34;]}
 
             self.output[key] = []
             for i in range(self.n_runs_per_case):
-                number_of_real_droplets = case[&#39;ISA&#39;].norm_factor * self.volume
+                number_of_real_droplets = case[&#34;ISA&#34;].norm_factor * self.volume
                 n_sd = number_of_real_droplets / self.multiplicity
                 np.testing.assert_approx_equal(n_sd, int(n_sd))
                 n_sd = int(n_sd)
-                initial_temp = self.temperature_range[1] if self.temperature_range else np.nan
+                initial_temp = (
+                    self.temperature_range[1] if self.temperature_range else np.nan
+                )
                 f_ufz, a_tot = simulation(
                     constants=constants,
-                    seed=i, n_sd=n_sd, time_step=self.time_step, volume=self.volume,
-                    spectrum=case[&#39;ISA&#39;],
-                    droplet_volume=self.droplet_volume, multiplicity=self.multiplicity,
-                    total_time=total_time, number_of_real_droplets=number_of_real_droplets,
-                    cooling_rate=self.cases[key][&#39;cooling_rate&#39;],
+                    seed=i,
+                    n_sd=n_sd,
+                    time_step=self.time_step,
+                    volume=self.volume,
+                    spectrum=case[&#34;ISA&#34;],
+                    droplet_volume=self.droplet_volume,
+                    multiplicity=self.multiplicity,
+                    total_time=total_time,
+                    number_of_real_droplets=number_of_real_droplets,
+                    cooling_rate=self.cases[key][&#34;cooling_rate&#34;],
                     heterogeneous_ice_nucleation_rate=self.heterogeneous_ice_nucleation_rate,
-                    initial_temperature=initial_temp
+                    initial_temperature=initial_temp,
                 )
-                self.output[key].append({&#39;f_ufz&#39;: f_ufz, &#39;A_tot&#39;: a_tot})
+                self.output[key].append({&#34;f_ufz&#34;: f_ufz, &#34;A_tot&#34;: a_tot})
 
     def plot(self, ylim, grid=None):
-        pyplot.rc(&#39;font&#39;, size=10)
+        pyplot.rc(&#34;font&#34;, size=10)
         for key in self.output:
             for run in range(self.n_runs_per_case):
-                time = self.time_step * np.arange(len(self.output[key][run][&#39;f_ufz&#39;]))
-                if self.cases[key][&#39;cooling_rate&#39;] == 0:
+                time = self.time_step * np.arange(len(self.output[key][run][&#34;f_ufz&#34;]))
+                if self.cases[key][&#34;cooling_rate&#34;] == 0:
                     plot_x = time / si.min
-                    plot_y = self.output[key][run][&#39;f_ufz&#39;]
+                    plot_y = self.output[key][run][&#34;f_ufz&#34;]
                 else:
-                    plot_x = self.temperature_range[1] - time * self.cases[key][&#39;cooling_rate&#39;]
-                    plot_y = 1 - np.asarray(self.output[key][run][&#39;f_ufz&#39;])
+                    plot_x = (
+                        self.temperature_range[1]
+                        - time * self.cases[key][&#34;cooling_rate&#34;]
+                    )
+                    plot_y = 1 - np.asarray(self.output[key][run][&#34;f_ufz&#34;])
                 pyplot.step(
                     plot_x,
                     plot_y,
                     label=self.cases.label(key) if run == 0 else None,
-                    color=self.cases[key][&#39;color&#39;],
-                    linewidth=.666
+                    color=self.cases[key][&#34;color&#34;],
+                    linewidth=0.666,
                 )
         key = None
-        if version.parse(matplotlib.__version__) &gt;= version.parse(&#39;3.3.0&#39;):
+        if version.parse(matplotlib.__version__) &gt;= version.parse(&#34;3.3.0&#34;):
             pyplot.gca().set_box_aspect(1)
         pyplot.legend()
         if grid is not None:
@@ -136,17 +152,17 @@ class Simulation:
             pyplot.xlim(0, self.total_time / si.min)
             pyplot.xlabel(&#34;t / min&#34;)
             pyplot.ylabel(&#34;$f_{ufz}$&#34;)
-            pyplot.yscale(&#39;log&#39;)
+            pyplot.yscale(&#34;log&#34;)
 
     def plot_j_het(self, variant: str, abifm_params_case: str, ylim=None):
-        assert variant in (&#39;apparent&#39;, &#39;actual&#39;)
+        assert variant in (&#34;apparent&#34;, &#34;actual&#34;)
 
         formulae = Formulae(
-            heterogeneous_ice_nucleation_rate=&#39;ABIFM&#39;,
+            heterogeneous_ice_nucleation_rate=&#34;ABIFM&#34;,
             constants={
-                &#39;ABIFM_M&#39;: self.cases[abifm_params_case][&#39;ABIFM_m&#39;],
-                &#39;ABIFM_C&#39;: self.cases[abifm_params_case][&#39;ABIFM_c&#39;]
-            }
+                &#34;ABIFM_M&#34;: self.cases[abifm_params_case][&#34;ABIFM_m&#34;],
+                &#34;ABIFM_C&#34;: self.cases[abifm_params_case][&#34;ABIFM_c&#34;],
+            },
         )
 
         yunit = 1 / si.cm**2 / si.s
@@ -156,77 +172,99 @@ class Simulation:
             svp.ice_Celsius(plot_x - const.T0) / svp.pvs_Celsius(plot_x - const.T0)
         )
         pyplot.grid()
-        pyplot.plot(plot_x, plot_y / yunit, color=&#39;red&#39;, label=&#39;ABIFM $J_{het}$&#39;)
+        pyplot.plot(plot_x, plot_y / yunit, color=&#34;red&#34;, label=&#34;ABIFM $J_{het}$&#34;)
 
         for key in self.output:
             for run in range(self.n_runs_per_case):
-                time = self.time_step * np.arange(len(self.output[key][run][&#39;f_ufz&#39;]))
-                if self.cases[key][&#39;cooling_rate&#39;] == 0:
+                time = self.time_step * np.arange(len(self.output[key][run][&#34;f_ufz&#34;]))
+                if self.cases[key][&#34;cooling_rate&#34;] == 0:
                     raise NotImplementedError()
 
-                temperature = self.temperature_range[1] - time * self.cases[key][&#39;cooling_rate&#39;]
-                spec = self.cases[key][&#39;ISA&#39;]
+                temperature = (
+                    self.temperature_range[1] - time * self.cases[key][&#34;cooling_rate&#34;]
+                )
+                spec = self.cases[key][&#34;ISA&#34;]
 
                 particle_number = spec.norm_factor * self.volume
-                n_ufz = particle_number * np.asarray(self.output[key][run][&#39;f_ufz&#39;])
+                n_ufz = particle_number * np.asarray(self.output[key][run][&#34;f_ufz&#34;])
                 n_frz = particle_number - n_ufz
 
                 j_het = np.diff(n_frz) / self.time_step
-                if variant == &#39;apparent&#39;:
+                if variant == &#34;apparent&#34;:
                     j_het /= n_ufz[:-1] * spec.m_mode
                 else:
-                    a_tot = np.asarray(self.output[key][run][&#39;A_tot&#39;][:-1])
-                    j_het = np.divide(j_het, a_tot, out=np.zeros_like(j_het), where=a_tot != 0)
+                    a_tot = np.asarray(self.output[key][run][&#34;A_tot&#34;][:-1])
+                    j_het = np.divide(
+                        j_het, a_tot, out=np.zeros_like(j_het), where=a_tot != 0
+                    )
 
                 pyplot.scatter(
-                    temperature[:-1] + np.diff(temperature)/2,
+                    temperature[:-1] + np.diff(temperature) / 2,
                     np.where(j_het != 0, j_het, np.nan) / yunit,
                     label=self.cases.label(key) if run == 0 else None,
-                    color=self.cases[key][&#39;color&#39;]
+                    color=self.cases[key][&#34;color&#34;],
                 )
         key = None
 
-        pyplot.yscale(&#39;log&#39;)
-        pyplot.xlabel(&#39;K&#39;)
-        pyplot.ylabel(f&#39;$J_{{het}}$, $J_{{het}}^{{{variant}}}$ / cm$^{{-2}}$ s$^{{-1}}$&#39;)
+        pyplot.yscale(&#34;log&#34;)
+        pyplot.xlabel(&#34;K&#34;)
+        pyplot.ylabel(
+            f&#34;$J_{{het}}$, $J_{{het}}^{{{variant}}}$ / cm$^{{-2}}$ s$^{{-1}}$&#34;
+        )
         pyplot.xlim(self.temperature_range)
         if ylim is not None:
             pyplot.ylim(ylim)
         pyplot.legend()
-        if version.parse(matplotlib.__version__) &gt;= version.parse(&#39;3.3.0&#39;):
+        if version.parse(matplotlib.__version__) &gt;= version.parse(&#34;3.3.0&#34;):
             pyplot.gca().set_box_aspect(1)
 
 
-def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_volume, multiplicity,
-               total_time, number_of_real_droplets, cooling_rate=0,
-               heterogeneous_ice_nucleation_rate=&#39;Constant&#39;, initial_temperature=np.nan):
-    formulae = Formulae(seed=seed,
-                        heterogeneous_ice_nucleation_rate=heterogeneous_ice_nucleation_rate,
-                        constants=constants
-                        )
+def simulation(
+    *,
+    constants,
+    seed,
+    n_sd,
+    time_step,
+    volume,
+    spectrum,
+    droplet_volume,
+    multiplicity,
+    total_time,
+    number_of_real_droplets,
+    cooling_rate=0,
+    heterogeneous_ice_nucleation_rate=&#34;Constant&#34;,
+    initial_temperature=np.nan,
+):
+    formulae = Formulae(
+        seed=seed,
+        heterogeneous_ice_nucleation_rate=heterogeneous_ice_nucleation_rate,
+        constants=constants,
+    )
     builder = Builder(n_sd=n_sd, backend=CPU(formulae=formulae))
     env = Box(dt=time_step, dv=volume)
     builder.set_environment(env)
     builder.add_dynamic(Freezing(singular=False))
 
-    if hasattr(spectrum, &#39;s_geom&#39;) and spectrum.s_geom == 1:
-        _isa, _conc = np.full(n_sd, spectrum.m_mode), np.full(n_sd, multiplicity / volume)
+    if hasattr(spectrum, &#34;s_geom&#34;) and spectrum.s_geom == 1:
+        _isa, _conc = np.full(n_sd, spectrum.m_mode), np.full(
+            n_sd, multiplicity / volume
+        )
     else:
         _isa, _conc = spectral_sampling.ConstantMultiplicity(spectrum).sample(n_sd)
     attributes = {
-        &#39;n&#39;: discretise_multiplicities(_conc * volume),
-        &#39;immersed surface area&#39;: _isa,
-        &#39;volume&#39;: np.full(n_sd, droplet_volume)
+        &#34;n&#34;: discretise_multiplicities(_conc * volume),
+        &#34;immersed surface area&#34;: _isa,
+        &#34;volume&#34;: np.full(n_sd, droplet_volume),
     }
-    np.testing.assert_almost_equal(attributes[&#39;n&#39;], multiplicity)
+    np.testing.assert_almost_equal(attributes[&#34;n&#34;], multiplicity)
     products = (
-        IceWaterContent(name=&#39;qi&#39;),
-        TotalUnfrozenImmersedSurfaceArea(name=&#39;A_tot&#39;)
+        IceWaterContent(name=&#34;qi&#34;),
+        TotalUnfrozenImmersedSurfaceArea(name=&#34;A_tot&#34;),
     )
     particulator = builder.build(attributes=attributes, products=products)
 
     temperature = initial_temperature
-    env[&#39;a_w_ice&#39;] = np.nan
+    env[&#34;a_w_ice&#34;] = np.nan
     svp = particulator.formulae.saturation_vapour_pressure
 
     cell_id = 0
@@ -235,21 +273,19 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
     for i in range(int(total_time / time_step) + 1):
         if cooling_rate != 0:
             temperature -= cooling_rate * time_step / 2
-            env[&#39;a_w_ice&#39;] = (
-                    svp.ice_Celsius(temperature - const.T0)
-                    /
-                    svp.pvs_Celsius(temperature - const.T0)
+            env[&#34;a_w_ice&#34;] = svp.ice_Celsius(temperature - const.T0) / svp.pvs_Celsius(
+                temperature - const.T0
             )
         particulator.run(0 if i == 0 else 1)
         if cooling_rate != 0:
             temperature -= cooling_rate * time_step / 2
 
-        ice_mass_per_volume = particulator.products[&#39;qi&#39;].get()[cell_id]
+        ice_mass_per_volume = particulator.products[&#34;qi&#34;].get()[cell_id]
         ice_mass = ice_mass_per_volume * volume
         ice_number = ice_mass / (formulae.constants.rho_w * droplet_volume)
         unfrozen_fraction = 1 - ice_number / number_of_real_droplets
         f_ufz.append(unfrozen_fraction)
-        a_tot.append(particulator.products[&#39;A_tot&#39;].get()[cell_id])
+        a_tot.append(particulator.products[&#34;A_tot&#34;].get()[cell_id])
     return f_ufz, a_tot</code></pre>
 </details>
 </section>
@@ -269,36 +305,52 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_volume, multiplicity,
-               total_time, number_of_real_droplets, cooling_rate=0,
-               heterogeneous_ice_nucleation_rate=&#39;Constant&#39;, initial_temperature=np.nan):
-    formulae = Formulae(seed=seed,
-                        heterogeneous_ice_nucleation_rate=heterogeneous_ice_nucleation_rate,
-                        constants=constants
-                        )
+<pre><code class="python">def simulation(
+    *,
+    constants,
+    seed,
+    n_sd,
+    time_step,
+    volume,
+    spectrum,
+    droplet_volume,
+    multiplicity,
+    total_time,
+    number_of_real_droplets,
+    cooling_rate=0,
+    heterogeneous_ice_nucleation_rate=&#34;Constant&#34;,
+    initial_temperature=np.nan,
+):
+    formulae = Formulae(
+        seed=seed,
+        heterogeneous_ice_nucleation_rate=heterogeneous_ice_nucleation_rate,
+        constants=constants,
+    )
     builder = Builder(n_sd=n_sd, backend=CPU(formulae=formulae))
     env = Box(dt=time_step, dv=volume)
     builder.set_environment(env)
     builder.add_dynamic(Freezing(singular=False))
 
-    if hasattr(spectrum, &#39;s_geom&#39;) and spectrum.s_geom == 1:
-        _isa, _conc = np.full(n_sd, spectrum.m_mode), np.full(n_sd, multiplicity / volume)
+    if hasattr(spectrum, &#34;s_geom&#34;) and spectrum.s_geom == 1:
+        _isa, _conc = np.full(n_sd, spectrum.m_mode), np.full(
+            n_sd, multiplicity / volume
+        )
     else:
         _isa, _conc = spectral_sampling.ConstantMultiplicity(spectrum).sample(n_sd)
     attributes = {
-        &#39;n&#39;: discretise_multiplicities(_conc * volume),
-        &#39;immersed surface area&#39;: _isa,
-        &#39;volume&#39;: np.full(n_sd, droplet_volume)
+        &#34;n&#34;: discretise_multiplicities(_conc * volume),
+        &#34;immersed surface area&#34;: _isa,
+        &#34;volume&#34;: np.full(n_sd, droplet_volume),
     }
-    np.testing.assert_almost_equal(attributes[&#39;n&#39;], multiplicity)
+    np.testing.assert_almost_equal(attributes[&#34;n&#34;], multiplicity)
     products = (
-        IceWaterContent(name=&#39;qi&#39;),
-        TotalUnfrozenImmersedSurfaceArea(name=&#39;A_tot&#39;)
+        IceWaterContent(name=&#34;qi&#34;),
+        TotalUnfrozenImmersedSurfaceArea(name=&#34;A_tot&#34;),
     )
     particulator = builder.build(attributes=attributes, products=products)
 
     temperature = initial_temperature
-    env[&#39;a_w_ice&#39;] = np.nan
+    env[&#34;a_w_ice&#34;] = np.nan
     svp = particulator.formulae.saturation_vapour_pressure
 
     cell_id = 0
@@ -307,21 +359,19 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
     for i in range(int(total_time / time_step) + 1):
         if cooling_rate != 0:
             temperature -= cooling_rate * time_step / 2
-            env[&#39;a_w_ice&#39;] = (
-                    svp.ice_Celsius(temperature - const.T0)
-                    /
-                    svp.pvs_Celsius(temperature - const.T0)
+            env[&#34;a_w_ice&#34;] = svp.ice_Celsius(temperature - const.T0) / svp.pvs_Celsius(
+                temperature - const.T0
             )
         particulator.run(0 if i == 0 else 1)
         if cooling_rate != 0:
             temperature -= cooling_rate * time_step / 2
 
-        ice_mass_per_volume = particulator.products[&#39;qi&#39;].get()[cell_id]
+        ice_mass_per_volume = particulator.products[&#34;qi&#34;].get()[cell_id]
         ice_mass = ice_mass_per_volume * volume
         ice_number = ice_mass / (formulae.constants.rho_w * droplet_volume)
         unfrozen_fraction = 1 - ice_number / number_of_real_droplets
         f_ufz.append(unfrozen_fraction)
-        a_tot.append(particulator.products[&#39;A_tot&#39;].get()[cell_id])
+        a_tot.append(particulator.products[&#34;A_tot&#34;].get()[cell_id])
     return f_ufz, a_tot</code></pre>
 </details>
 </dd>
@@ -343,12 +393,18 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
 <pre><code class="python">class Simulation:
     # note: dv and droplet_volume are dummy multipliers (multiplied and then divided by)
     #       will become used if coalescence or other processes are turned on
-    def __init__(self, *, cases, n_runs_per_case=10, multiplicity=1, time_step,
-                 droplet_volume=1 * si.um ** 3,
-                 heterogeneous_ice_nucleation_rate=&#39;Constant&#39;,
-                 total_time: Union[None, float] = None,
-                 temperature_range: Union[None, tuple] = None
-                 ):
+    def __init__(
+        self,
+        *,
+        cases,
+        n_runs_per_case=10,
+        multiplicity=1,
+        time_step,
+        droplet_volume=1 * si.um**3,
+        heterogeneous_ice_nucleation_rate=&#34;Constant&#34;,
+        total_time: Union[None, float] = None,
+        temperature_range: Union[None, tuple] = None,
+    ):
         self.cases = cases
         self.n_runs_per_case = n_runs_per_case
         self.multiplicity = multiplicity
@@ -369,58 +425,67 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
             if self.total_time is not None:
                 total_time = self.total_time
             else:
-                total_time = np.diff(np.asarray(self.temperature_range)) / case[&#39;cooling_rate&#39;]
+                total_time = (
+                    np.diff(np.asarray(self.temperature_range)) / case[&#34;cooling_rate&#34;]
+                )
 
             constants = None
-            if &#39;J_het&#39; not in case:
-                case[&#39;J_het&#39;] = None
-                constants = {
-                    &#39;ABIFM_C&#39;: case[&#39;ABIFM_c&#39;],
-                    &#39;ABIFM_M&#39;: case[&#39;ABIFM_m&#39;]
-                }
-            if &#39;cooling_rate&#39; not in case:
-                case[&#39;cooling_rate&#39;] = 0
-                constants = {&#39;J_HET&#39;: case[&#39;J_het&#39;]}
+            if &#34;J_het&#34; not in case:
+                case[&#34;J_het&#34;] = None
+                constants = {&#34;ABIFM_C&#34;: case[&#34;ABIFM_c&#34;], &#34;ABIFM_M&#34;: case[&#34;ABIFM_m&#34;]}
+            if &#34;cooling_rate&#34; not in case:
+                case[&#34;cooling_rate&#34;] = 0
+                constants = {&#34;J_HET&#34;: case[&#34;J_het&#34;]}
 
             self.output[key] = []
             for i in range(self.n_runs_per_case):
-                number_of_real_droplets = case[&#39;ISA&#39;].norm_factor * self.volume
+                number_of_real_droplets = case[&#34;ISA&#34;].norm_factor * self.volume
                 n_sd = number_of_real_droplets / self.multiplicity
                 np.testing.assert_approx_equal(n_sd, int(n_sd))
                 n_sd = int(n_sd)
-                initial_temp = self.temperature_range[1] if self.temperature_range else np.nan
+                initial_temp = (
+                    self.temperature_range[1] if self.temperature_range else np.nan
+                )
                 f_ufz, a_tot = simulation(
                     constants=constants,
-                    seed=i, n_sd=n_sd, time_step=self.time_step, volume=self.volume,
-                    spectrum=case[&#39;ISA&#39;],
-                    droplet_volume=self.droplet_volume, multiplicity=self.multiplicity,
-                    total_time=total_time, number_of_real_droplets=number_of_real_droplets,
-                    cooling_rate=self.cases[key][&#39;cooling_rate&#39;],
+                    seed=i,
+                    n_sd=n_sd,
+                    time_step=self.time_step,
+                    volume=self.volume,
+                    spectrum=case[&#34;ISA&#34;],
+                    droplet_volume=self.droplet_volume,
+                    multiplicity=self.multiplicity,
+                    total_time=total_time,
+                    number_of_real_droplets=number_of_real_droplets,
+                    cooling_rate=self.cases[key][&#34;cooling_rate&#34;],
                     heterogeneous_ice_nucleation_rate=self.heterogeneous_ice_nucleation_rate,
-                    initial_temperature=initial_temp
+                    initial_temperature=initial_temp,
                 )
-                self.output[key].append({&#39;f_ufz&#39;: f_ufz, &#39;A_tot&#39;: a_tot})
+                self.output[key].append({&#34;f_ufz&#34;: f_ufz, &#34;A_tot&#34;: a_tot})
 
     def plot(self, ylim, grid=None):
-        pyplot.rc(&#39;font&#39;, size=10)
+        pyplot.rc(&#34;font&#34;, size=10)
         for key in self.output:
             for run in range(self.n_runs_per_case):
-                time = self.time_step * np.arange(len(self.output[key][run][&#39;f_ufz&#39;]))
-                if self.cases[key][&#39;cooling_rate&#39;] == 0:
+                time = self.time_step * np.arange(len(self.output[key][run][&#34;f_ufz&#34;]))
+                if self.cases[key][&#34;cooling_rate&#34;] == 0:
                     plot_x = time / si.min
-                    plot_y = self.output[key][run][&#39;f_ufz&#39;]
+                    plot_y = self.output[key][run][&#34;f_ufz&#34;]
                 else:
-                    plot_x = self.temperature_range[1] - time * self.cases[key][&#39;cooling_rate&#39;]
-                    plot_y = 1 - np.asarray(self.output[key][run][&#39;f_ufz&#39;])
+                    plot_x = (
+                        self.temperature_range[1]
+                        - time * self.cases[key][&#34;cooling_rate&#34;]
+                    )
+                    plot_y = 1 - np.asarray(self.output[key][run][&#34;f_ufz&#34;])
                 pyplot.step(
                     plot_x,
                     plot_y,
                     label=self.cases.label(key) if run == 0 else None,
-                    color=self.cases[key][&#39;color&#39;],
-                    linewidth=.666
+                    color=self.cases[key][&#34;color&#34;],
+                    linewidth=0.666,
                 )
         key = None
-        if version.parse(matplotlib.__version__) &gt;= version.parse(&#39;3.3.0&#39;):
+        if version.parse(matplotlib.__version__) &gt;= version.parse(&#34;3.3.0&#34;):
             pyplot.gca().set_box_aspect(1)
         pyplot.legend()
         if grid is not None:
@@ -434,17 +499,17 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
             pyplot.xlim(0, self.total_time / si.min)
             pyplot.xlabel(&#34;t / min&#34;)
             pyplot.ylabel(&#34;$f_{ufz}$&#34;)
-            pyplot.yscale(&#39;log&#39;)
+            pyplot.yscale(&#34;log&#34;)
 
     def plot_j_het(self, variant: str, abifm_params_case: str, ylim=None):
-        assert variant in (&#39;apparent&#39;, &#39;actual&#39;)
+        assert variant in (&#34;apparent&#34;, &#34;actual&#34;)
 
         formulae = Formulae(
-            heterogeneous_ice_nucleation_rate=&#39;ABIFM&#39;,
+            heterogeneous_ice_nucleation_rate=&#34;ABIFM&#34;,
             constants={
-                &#39;ABIFM_M&#39;: self.cases[abifm_params_case][&#39;ABIFM_m&#39;],
-                &#39;ABIFM_C&#39;: self.cases[abifm_params_case][&#39;ABIFM_c&#39;]
-            }
+                &#34;ABIFM_M&#34;: self.cases[abifm_params_case][&#34;ABIFM_m&#34;],
+                &#34;ABIFM_C&#34;: self.cases[abifm_params_case][&#34;ABIFM_c&#34;],
+            },
         )
 
         yunit = 1 / si.cm**2 / si.s
@@ -454,44 +519,50 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
             svp.ice_Celsius(plot_x - const.T0) / svp.pvs_Celsius(plot_x - const.T0)
         )
         pyplot.grid()
-        pyplot.plot(plot_x, plot_y / yunit, color=&#39;red&#39;, label=&#39;ABIFM $J_{het}$&#39;)
+        pyplot.plot(plot_x, plot_y / yunit, color=&#34;red&#34;, label=&#34;ABIFM $J_{het}$&#34;)
 
         for key in self.output:
             for run in range(self.n_runs_per_case):
-                time = self.time_step * np.arange(len(self.output[key][run][&#39;f_ufz&#39;]))
-                if self.cases[key][&#39;cooling_rate&#39;] == 0:
+                time = self.time_step * np.arange(len(self.output[key][run][&#34;f_ufz&#34;]))
+                if self.cases[key][&#34;cooling_rate&#34;] == 0:
                     raise NotImplementedError()
 
-                temperature = self.temperature_range[1] - time * self.cases[key][&#39;cooling_rate&#39;]
-                spec = self.cases[key][&#39;ISA&#39;]
+                temperature = (
+                    self.temperature_range[1] - time * self.cases[key][&#34;cooling_rate&#34;]
+                )
+                spec = self.cases[key][&#34;ISA&#34;]
 
                 particle_number = spec.norm_factor * self.volume
-                n_ufz = particle_number * np.asarray(self.output[key][run][&#39;f_ufz&#39;])
+                n_ufz = particle_number * np.asarray(self.output[key][run][&#34;f_ufz&#34;])
                 n_frz = particle_number - n_ufz
 
                 j_het = np.diff(n_frz) / self.time_step
-                if variant == &#39;apparent&#39;:
+                if variant == &#34;apparent&#34;:
                     j_het /= n_ufz[:-1] * spec.m_mode
                 else:
-                    a_tot = np.asarray(self.output[key][run][&#39;A_tot&#39;][:-1])
-                    j_het = np.divide(j_het, a_tot, out=np.zeros_like(j_het), where=a_tot != 0)
+                    a_tot = np.asarray(self.output[key][run][&#34;A_tot&#34;][:-1])
+                    j_het = np.divide(
+                        j_het, a_tot, out=np.zeros_like(j_het), where=a_tot != 0
+                    )
 
                 pyplot.scatter(
-                    temperature[:-1] + np.diff(temperature)/2,
+                    temperature[:-1] + np.diff(temperature) / 2,
                     np.where(j_het != 0, j_het, np.nan) / yunit,
                     label=self.cases.label(key) if run == 0 else None,
-                    color=self.cases[key][&#39;color&#39;]
+                    color=self.cases[key][&#34;color&#34;],
                 )
         key = None
 
-        pyplot.yscale(&#39;log&#39;)
-        pyplot.xlabel(&#39;K&#39;)
-        pyplot.ylabel(f&#39;$J_{{het}}$, $J_{{het}}^{{{variant}}}$ / cm$^{{-2}}$ s$^{{-1}}$&#39;)
+        pyplot.yscale(&#34;log&#34;)
+        pyplot.xlabel(&#34;K&#34;)
+        pyplot.ylabel(
+            f&#34;$J_{{het}}$, $J_{{het}}^{{{variant}}}$ / cm$^{{-2}}$ s$^{{-1}}$&#34;
+        )
         pyplot.xlim(self.temperature_range)
         if ylim is not None:
             pyplot.ylim(ylim)
         pyplot.legend()
-        if version.parse(matplotlib.__version__) &gt;= version.parse(&#39;3.3.0&#39;):
+        if version.parse(matplotlib.__version__) &gt;= version.parse(&#34;3.3.0&#34;):
             pyplot.gca().set_box_aspect(1)</code></pre>
 </details>
 <h3>Methods</h3>
@@ -506,25 +577,28 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def plot(self, ylim, grid=None):
-    pyplot.rc(&#39;font&#39;, size=10)
+    pyplot.rc(&#34;font&#34;, size=10)
     for key in self.output:
         for run in range(self.n_runs_per_case):
-            time = self.time_step * np.arange(len(self.output[key][run][&#39;f_ufz&#39;]))
-            if self.cases[key][&#39;cooling_rate&#39;] == 0:
+            time = self.time_step * np.arange(len(self.output[key][run][&#34;f_ufz&#34;]))
+            if self.cases[key][&#34;cooling_rate&#34;] == 0:
                 plot_x = time / si.min
-                plot_y = self.output[key][run][&#39;f_ufz&#39;]
+                plot_y = self.output[key][run][&#34;f_ufz&#34;]
             else:
-                plot_x = self.temperature_range[1] - time * self.cases[key][&#39;cooling_rate&#39;]
-                plot_y = 1 - np.asarray(self.output[key][run][&#39;f_ufz&#39;])
+                plot_x = (
+                    self.temperature_range[1]
+                    - time * self.cases[key][&#34;cooling_rate&#34;]
+                )
+                plot_y = 1 - np.asarray(self.output[key][run][&#34;f_ufz&#34;])
             pyplot.step(
                 plot_x,
                 plot_y,
                 label=self.cases.label(key) if run == 0 else None,
-                color=self.cases[key][&#39;color&#39;],
-                linewidth=.666
+                color=self.cases[key][&#34;color&#34;],
+                linewidth=0.666,
             )
     key = None
-    if version.parse(matplotlib.__version__) &gt;= version.parse(&#39;3.3.0&#39;):
+    if version.parse(matplotlib.__version__) &gt;= version.parse(&#34;3.3.0&#34;):
         pyplot.gca().set_box_aspect(1)
     pyplot.legend()
     if grid is not None:
@@ -538,7 +612,7 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
         pyplot.xlim(0, self.total_time / si.min)
         pyplot.xlabel(&#34;t / min&#34;)
         pyplot.ylabel(&#34;$f_{ufz}$&#34;)
-        pyplot.yscale(&#39;log&#39;)</code></pre>
+        pyplot.yscale(&#34;log&#34;)</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Alpert_and_Knopf_2016.simulation.Simulation.plot_j_het"><code class="name flex">
@@ -551,14 +625,14 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def plot_j_het(self, variant: str, abifm_params_case: str, ylim=None):
-    assert variant in (&#39;apparent&#39;, &#39;actual&#39;)
+    assert variant in (&#34;apparent&#34;, &#34;actual&#34;)
 
     formulae = Formulae(
-        heterogeneous_ice_nucleation_rate=&#39;ABIFM&#39;,
+        heterogeneous_ice_nucleation_rate=&#34;ABIFM&#34;,
         constants={
-            &#39;ABIFM_M&#39;: self.cases[abifm_params_case][&#39;ABIFM_m&#39;],
-            &#39;ABIFM_C&#39;: self.cases[abifm_params_case][&#39;ABIFM_c&#39;]
-        }
+            &#34;ABIFM_M&#34;: self.cases[abifm_params_case][&#34;ABIFM_m&#34;],
+            &#34;ABIFM_C&#34;: self.cases[abifm_params_case][&#34;ABIFM_c&#34;],
+        },
     )
 
     yunit = 1 / si.cm**2 / si.s
@@ -568,44 +642,50 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
         svp.ice_Celsius(plot_x - const.T0) / svp.pvs_Celsius(plot_x - const.T0)
     )
     pyplot.grid()
-    pyplot.plot(plot_x, plot_y / yunit, color=&#39;red&#39;, label=&#39;ABIFM $J_{het}$&#39;)
+    pyplot.plot(plot_x, plot_y / yunit, color=&#34;red&#34;, label=&#34;ABIFM $J_{het}$&#34;)
 
     for key in self.output:
         for run in range(self.n_runs_per_case):
-            time = self.time_step * np.arange(len(self.output[key][run][&#39;f_ufz&#39;]))
-            if self.cases[key][&#39;cooling_rate&#39;] == 0:
+            time = self.time_step * np.arange(len(self.output[key][run][&#34;f_ufz&#34;]))
+            if self.cases[key][&#34;cooling_rate&#34;] == 0:
                 raise NotImplementedError()
 
-            temperature = self.temperature_range[1] - time * self.cases[key][&#39;cooling_rate&#39;]
-            spec = self.cases[key][&#39;ISA&#39;]
+            temperature = (
+                self.temperature_range[1] - time * self.cases[key][&#34;cooling_rate&#34;]
+            )
+            spec = self.cases[key][&#34;ISA&#34;]
 
             particle_number = spec.norm_factor * self.volume
-            n_ufz = particle_number * np.asarray(self.output[key][run][&#39;f_ufz&#39;])
+            n_ufz = particle_number * np.asarray(self.output[key][run][&#34;f_ufz&#34;])
             n_frz = particle_number - n_ufz
 
             j_het = np.diff(n_frz) / self.time_step
-            if variant == &#39;apparent&#39;:
+            if variant == &#34;apparent&#34;:
                 j_het /= n_ufz[:-1] * spec.m_mode
             else:
-                a_tot = np.asarray(self.output[key][run][&#39;A_tot&#39;][:-1])
-                j_het = np.divide(j_het, a_tot, out=np.zeros_like(j_het), where=a_tot != 0)
+                a_tot = np.asarray(self.output[key][run][&#34;A_tot&#34;][:-1])
+                j_het = np.divide(
+                    j_het, a_tot, out=np.zeros_like(j_het), where=a_tot != 0
+                )
 
             pyplot.scatter(
-                temperature[:-1] + np.diff(temperature)/2,
+                temperature[:-1] + np.diff(temperature) / 2,
                 np.where(j_het != 0, j_het, np.nan) / yunit,
                 label=self.cases.label(key) if run == 0 else None,
-                color=self.cases[key][&#39;color&#39;]
+                color=self.cases[key][&#34;color&#34;],
             )
     key = None
 
-    pyplot.yscale(&#39;log&#39;)
-    pyplot.xlabel(&#39;K&#39;)
-    pyplot.ylabel(f&#39;$J_{{het}}$, $J_{{het}}^{{{variant}}}$ / cm$^{{-2}}$ s$^{{-1}}$&#39;)
+    pyplot.yscale(&#34;log&#34;)
+    pyplot.xlabel(&#34;K&#34;)
+    pyplot.ylabel(
+        f&#34;$J_{{het}}$, $J_{{het}}^{{{variant}}}$ / cm$^{{-2}}$ s$^{{-1}}$&#34;
+    )
     pyplot.xlim(self.temperature_range)
     if ylim is not None:
         pyplot.ylim(ylim)
     pyplot.legend()
-    if version.parse(matplotlib.__version__) &gt;= version.parse(&#39;3.3.0&#39;):
+    if version.parse(matplotlib.__version__) &gt;= version.parse(&#34;3.3.0&#34;):
         pyplot.gca().set_box_aspect(1)</code></pre>
 </details>
 </dd>
@@ -627,37 +707,43 @@ def simulation(*, constants, seed, n_sd, time_step, volume, spectrum, droplet_vo
         if self.total_time is not None:
             total_time = self.total_time
         else:
-            total_time = np.diff(np.asarray(self.temperature_range)) / case[&#39;cooling_rate&#39;]
+            total_time = (
+                np.diff(np.asarray(self.temperature_range)) / case[&#34;cooling_rate&#34;]
+            )
 
         constants = None
-        if &#39;J_het&#39; not in case:
-            case[&#39;J_het&#39;] = None
-            constants = {
-                &#39;ABIFM_C&#39;: case[&#39;ABIFM_c&#39;],
-                &#39;ABIFM_M&#39;: case[&#39;ABIFM_m&#39;]
-            }
-        if &#39;cooling_rate&#39; not in case:
-            case[&#39;cooling_rate&#39;] = 0
-            constants = {&#39;J_HET&#39;: case[&#39;J_het&#39;]}
+        if &#34;J_het&#34; not in case:
+            case[&#34;J_het&#34;] = None
+            constants = {&#34;ABIFM_C&#34;: case[&#34;ABIFM_c&#34;], &#34;ABIFM_M&#34;: case[&#34;ABIFM_m&#34;]}
+        if &#34;cooling_rate&#34; not in case:
+            case[&#34;cooling_rate&#34;] = 0
+            constants = {&#34;J_HET&#34;: case[&#34;J_het&#34;]}
 
         self.output[key] = []
         for i in range(self.n_runs_per_case):
-            number_of_real_droplets = case[&#39;ISA&#39;].norm_factor * self.volume
+            number_of_real_droplets = case[&#34;ISA&#34;].norm_factor * self.volume
             n_sd = number_of_real_droplets / self.multiplicity
             np.testing.assert_approx_equal(n_sd, int(n_sd))
             n_sd = int(n_sd)
-            initial_temp = self.temperature_range[1] if self.temperature_range else np.nan
+            initial_temp = (
+                self.temperature_range[1] if self.temperature_range else np.nan
+            )
             f_ufz, a_tot = simulation(
                 constants=constants,
-                seed=i, n_sd=n_sd, time_step=self.time_step, volume=self.volume,
-                spectrum=case[&#39;ISA&#39;],
-                droplet_volume=self.droplet_volume, multiplicity=self.multiplicity,
-                total_time=total_time, number_of_real_droplets=number_of_real_droplets,
-                cooling_rate=self.cases[key][&#39;cooling_rate&#39;],
+                seed=i,
+                n_sd=n_sd,
+                time_step=self.time_step,
+                volume=self.volume,
+                spectrum=case[&#34;ISA&#34;],
+                droplet_volume=self.droplet_volume,
+                multiplicity=self.multiplicity,
+                total_time=total_time,
+                number_of_real_droplets=number_of_real_droplets,
+                cooling_rate=self.cases[key][&#34;cooling_rate&#34;],
                 heterogeneous_ice_nucleation_rate=self.heterogeneous_ice_nucleation_rate,
-                initial_temperature=initial_temp
+                initial_temperature=initial_temp,
             )
-            self.output[key].append({&#39;f_ufz&#39;: f_ufz, &#39;A_tot&#39;: a_tot})</code></pre>
+            self.output[key].append({&#34;f_ufz&#34;: f_ufz, &#34;A_tot&#34;: a_tot})</code></pre>
 </details>
 </dd>
 </dl>

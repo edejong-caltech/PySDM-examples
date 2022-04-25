@@ -26,330 +26,216 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from pystrict import strict
-from chempy import Substance
+<pre><code class="python">from chempy import Substance
 from PySDM.initialisation import spectra
+from PySDM.initialisation.aerosol_composition import DryAerosolMixture
 from PySDM.physics import si
-from PySDM.physics.constants_defaults import rho_w, Mv
-
-compounds = (&#39;palmitic&#39;, &#39;SOA1&#39;, &#39;SOA2&#39;, &#39;(NH4)2SO4&#39;, &#39;NH4NO3&#39;, &#39;NaCl&#39;)
-
-molar_masses = {
-    &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass * si.gram / si.mole,
-    &#34;NH4NO3&#34;: Substance.from_formula(&#34;NH4NO3&#34;).mass * si.gram / si.mole,
-    &#39;SOA1&#39;: 190 * si.g / si.mole,
-    &#39;SOA2&#39;: 368.4 * si.g / si.mole,
-    &#34;NaCl&#34;: Substance.from_formula(&#34;NaCl&#34;).mass * si.gram / si.mole,
-    &#34;palmitic&#34;: 256.4 * si.g / si.mole
-}
-
-densities = {
-    &#39;palmitic&#39;: 0.852 * si.g / si.cm**3,
-    &#39;SOA1&#39;: 1.24 * si.g / si.cm**3,
-    &#39;SOA2&#39;: 1.2 * si.g / si.cm**3,
-    &#39;(NH4)2SO4&#39;: 1.77 * si.g / si.cm**3,
-    &#39;NH4NO3&#39;: 1.72 * si.g / si.cm**3,
-    &#39;NaCl&#39;: 2.16 * si.g / si.cm**3
-}
-
-is_organic = {
-    &#39;palmitic&#39;: True,
-    &#39;SOA1&#39;: True,
-    &#39;SOA2&#39;: True,
-    &#39;(NH4)2SO4&#39;: False,
-    &#39;NH4NO3&#39;: False,
-    &#39;NaCl&#39;: False
-}
-
-ionic_dissociation_phi = {
-    &#39;palmitic&#39;: 1,
-    &#39;SOA1&#39;: 1,
-    &#39;SOA2&#39;: 1,
-    &#39;(NH4)2SO4&#39;: 3,
-    &#39;NH4NO3&#39;: 2,
-    &#39;NaCl&#39;: 2
-}
+from pystrict import strict
 
 
-def volume_fractions(mass_fractions: dict):
-    return {
-        k: (mass_fractions[k] / densities[k]) / sum(
-            mass_fractions[i] / densities[i] for i in compounds
-        ) for k in compounds
-    }
-
-
-def f_org_volume(mass_fractions: dict):
-    volfrac = volume_fractions(mass_fractions)
-    return sum(is_organic[k] * volfrac[k] for k in compounds)
-
-
-def kappa(mass_fractions: dict):
-    result = {}
-    for model in (&#39;bulk&#39;, &#39;film&#39;):
-        volfrac = volume_fractions(mass_fractions)
-        molar_volumes = {i: molar_masses[i] / densities[i] for i in compounds}
-
-        _masked = {k: (not is_organic[k]) * volfrac[k] for k in compounds}
-        volume_fractions_of_just_inorg = {
-            k: _masked[k] / sum(list(_masked.values())) for k in compounds
+@strict
+class AerosolMarine(DryAerosolMixture):
+    def __init__(self, Acc_Forg: float = 0.2, Acc_N2: float = 134):
+        Aitken = {
+            &#34;palmitic&#34;: 0.2,
+            &#34;(NH4)2SO4&#34;: 0.8,
+            &#34;NaCl&#34;: 0,
+        }
+        Accumulation = {
+            &#34;palmitic&#34;: Acc_Forg,
+            &#34;(NH4)2SO4&#34;: 0,
+            &#34;NaCl&#34;: (1 - Acc_Forg),
         }
 
-        if model == &#39;film&#39;:
-            ns_per_vol = (1 - f_org_volume(mass_fractions)) * sum(
-                ionic_dissociation_phi[i] * volume_fractions_of_just_inorg[i] / molar_volumes[i]
-                for i in compounds
-            )
-        elif model == &#39;bulk&#39;:
-            ns_per_vol = sum(ionic_dissociation_phi[i] * volfrac[i] / molar_volumes[i]
-                             for i in compounds)
-        else:
-            raise AssertionError()
-        result[model] = ns_per_vol * Mv / rho_w
-
-    return result
-
-def nu_org(mass_fractions: dict):
-    volfrac = volume_fractions(mass_fractions)
-    molar_volumes = {i: molar_masses[i] / densities[i] for i in compounds}
-
-    _masked = {k: (is_organic[k]) * volfrac[k] for k in compounds}
-    volume_fractions_of_just_org = {k:_masked[k] / sum(list(_masked.values())) for k in compounds}
-
-    _nu = sum(volume_fractions_of_just_org[i] * molar_volumes[i] for i in compounds)
-    return _nu
-
-class Aerosol:
-    pass
-
-
-@strict
-class AerosolMarine(Aerosol):
-    Aitken = {&#39;palmitic&#39;: .2, &#39;SOA1&#39;: 0, &#39;SOA2&#39;: 0, &#39;(NH4)2SO4&#39;: .8, &#39;NH4NO3&#39;: 0, &#39;NaCl&#39;: 0}
-    Accumulation = {&#39;palmitic&#39;: .2, &#39;SOA1&#39;: 0, &#39;SOA2&#39;: 0, &#39;(NH4)2SO4&#39;: 0, &#39;NH4NO3&#39;: .8, &#39;NaCl&#39;: 0}
-
-    def __init__(self):
-        self.aerosol_modes_per_cc = (
-        {
-            &#39;f_org&#39;: f_org_volume(self.Aitken),
-            &#39;kappa&#39;: kappa(self.Aitken),
-            &#39;nu_org&#39;: nu_org(self.Aitken),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=226 / si.cm ** 3,
-                m_mode=19.6 * si.nm,
-                s_geom=1.71
-            )
-        },
-        {
-            &#39;f_org&#39;: f_org_volume(self.Accumulation),
-            &#39;kappa&#39;: kappa(self.Accumulation),
-            &#39;nu_org&#39;: nu_org(self.Accumulation),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=134 / si.cm ** 3,
-                m_mode=69.5 * si.nm,
-                s_geom=1.7
-            ),
-        }
-    )
-    color = &#39;dodgerblue&#39;
-
-
-@strict
-class AerosolBoreal(Aerosol):
-    # note: SOA1 or SOA2 unclear from the paper
-    Aitken = {
-        &#39;palmitic&#39;: 0,
-        &#39;SOA1&#39;: 0.668,
-        &#39;SOA2&#39;: 0,
-        &#39;(NH4)2SO4&#39;: 0.166,
-        &#39;NH4NO3&#39;: 0.166,
-        &#39;NaCl&#39;: 0
-    }
-    Accumulation = {
-        &#39;palmitic&#39;: 0,
-        &#39;SOA1&#39;: 0,
-        &#39;SOA2&#39;: 0.668,
-        &#39;(NH4)2SO4&#39;: 0.166,
-        &#39;NH4NO3&#39;: 0.166,
-        &#39;NaCl&#39;: 0
-    }
-
-    def __init__(self):
-        self.aerosol_modes_per_cc = (
-        {
-            &#39;f_org&#39;: f_org_volume(self.Aitken),
-            &#39;kappa&#39;: kappa(self.Aitken),
-            &#39;nu_org&#39;: nu_org(self.Aitken),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=1100 / si.cm ** 3,
-                m_mode=22.7 * si.nm,
-                s_geom=1.75
-            )
-        },
-        {
-            &#39;f_org&#39;: f_org_volume(self.Accumulation),
-            &#39;kappa&#39;: kappa(self.Accumulation),
-            &#39;nu_org&#39;: nu_org(self.Accumulation),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=540 / si.cm ** 3,
-                m_mode=82.2 * si.nm,
-                s_geom=1.62
-            )
-        },
-    )
-    color = &#39;yellowgreen&#39;
-
-
-@strict
-class AerosolNascent(Aerosol):
-    Ultrafine = {&#39;palmitic&#39;: 0, &#39;SOA1&#39;: .52, &#39;SOA2&#39;: 0, &#39;(NH4)2SO4&#39;: .48, &#39;NH4NO3&#39;: 0, &#39;NaCl&#39;: 0}
-    Accumulation = {&#39;palmitic&#39;: 0, &#39;SOA1&#39;: 0, &#39;SOA2&#39;: .3, &#39;(NH4)2SO4&#39;: .7, &#39;NH4NO3&#39;: 0, &#39;NaCl&#39;: 0}
-
-    def __init__(self):
-        self.aerosol_modes_per_cc = (
+        super().__init__(
+            ionic_dissociation_phi={
+                &#34;palmitic&#34;: 1,
+                &#34;(NH4)2SO4&#34;: 3,
+                &#34;NaCl&#34;: 2,
+            },
+            is_soluble={
+                &#34;palmitic&#34;: False,
+                &#34;(NH4)2SO4&#34;: True,
+                &#34;NaCl&#34;: True,
+            },
+            densities={
+                &#34;palmitic&#34;: 0.852 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
+                &#34;NaCl&#34;: 2.16 * si.g / si.cm**3,
+            },
+            compounds=(&#34;palmitic&#34;, &#34;(NH4)2SO4&#34;, &#34;NaCl&#34;),
+            molar_masses={
+                &#34;palmitic&#34;: 256.4 * si.g / si.mole,
+                &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
+                * si.gram
+                / si.mole,
+                &#34;NaCl&#34;: Substance.from_formula(&#34;NaCl&#34;).mass * si.gram / si.mole,
+            },
+        )
+        self.aerosol_modes = (
             {
-                &#39;f_org&#39;: f_org_volume(self.Ultrafine),
-                &#39;kappa&#39;: kappa(self.Ultrafine),
-                &#39;nu_org&#39;: nu_org(self.Ultrafine),
-                &#39;spectrum&#39;: spectra.Lognormal(
-                    norm_factor=2000 / si.cm ** 3,
-                    m_mode=11.5 * si.nm,
-                    s_geom=1.71
-                )
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
+                &#34;kappa&#34;: self.kappa(Aitken),
+                &#34;nu_org&#34;: self.nu_org(Aitken),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=226 / si.cm**3, m_mode=19.6 * si.nm, s_geom=1.71
+                ),
             },
             {
-                &#39;f_org&#39;: f_org_volume(self.Accumulation),
-                &#39;kappa&#39;: kappa(self.Accumulation),
-                &#39;nu_org&#39;: nu_org(self.Accumulation),
-                &#39;spectrum&#39;: spectra.Lognormal(
-                    norm_factor=30 / si.cm ** 3,
-                    m_mode=100 * si.nm,
-                    s_geom=1.70
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Accumulation),
+                &#34;kappa&#34;: self.kappa(Accumulation),
+                &#34;nu_org&#34;: self.nu_org(Accumulation),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=69.5 * si.nm, s_geom=1.7
                 ),
-            }
+            },
         )
-    color = &#39;orangered&#39;</code></pre>
-</details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.f_org_volume"><code class="name flex">
-<span>def <span class="ident">f_org_volume</span></span>(<span>mass_fractions: dict)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def f_org_volume(mass_fractions: dict):
-    volfrac = volume_fractions(mass_fractions)
-    return sum(is_organic[k] * volfrac[k] for k in compounds)</code></pre>
-</details>
-</dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.kappa"><code class="name flex">
-<span>def <span class="ident">kappa</span></span>(<span>mass_fractions: dict)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def kappa(mass_fractions: dict):
-    result = {}
-    for model in (&#39;bulk&#39;, &#39;film&#39;):
-        volfrac = volume_fractions(mass_fractions)
-        molar_volumes = {i: molar_masses[i] / densities[i] for i in compounds}
 
-        _masked = {k: (not is_organic[k]) * volfrac[k] for k in compounds}
-        volume_fractions_of_just_inorg = {
-            k: _masked[k] / sum(list(_masked.values())) for k in compounds
+    color = &#34;dodgerblue&#34;
+
+
+@strict
+class AerosolBoreal(DryAerosolMixture):
+    def __init__(self, Acc_Forg: float = 0.668, Acc_N2: float = 540):
+        # note: SOA1 or SOA2 unclear from the paper
+        Aitken = {
+            &#34;SOA1&#34;: 0.668,
+            &#34;SOA2&#34;: 0,
+            &#34;(NH4)2SO4&#34;: 0.166,
+            &#34;NH4NO3&#34;: 0.166,
+        }
+        Accumulation = {
+            &#34;SOA1&#34;: 0,
+            &#34;SOA2&#34;: Acc_Forg,
+            &#34;(NH4)2SO4&#34;: (1 - Acc_Forg) / 2,
+            &#34;NH4NO3&#34;: (1 - Acc_Forg) / 2,
         }
 
-        if model == &#39;film&#39;:
-            ns_per_vol = (1 - f_org_volume(mass_fractions)) * sum(
-                ionic_dissociation_phi[i] * volume_fractions_of_just_inorg[i] / molar_volumes[i]
-                for i in compounds
-            )
-        elif model == &#39;bulk&#39;:
-            ns_per_vol = sum(ionic_dissociation_phi[i] * volfrac[i] / molar_volumes[i]
-                             for i in compounds)
-        else:
-            raise AssertionError()
-        result[model] = ns_per_vol * Mv / rho_w
+        super().__init__(
+            ionic_dissociation_phi={
+                &#34;SOA1&#34;: 1,
+                &#34;SOA2&#34;: 1,
+                &#34;(NH4)2SO4&#34;: 3,
+                &#34;NH4NO3&#34;: 2,
+            },
+            molar_masses={
+                &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
+                * si.gram
+                / si.mole,
+                &#34;NH4NO3&#34;: Substance.from_formula(&#34;NH4NO3&#34;).mass * si.gram / si.mole,
+                &#34;SOA1&#34;: 190 * si.g / si.mole,
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+            },
+            densities={
+                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
+                &#34;NH4NO3&#34;: 1.72 * si.g / si.cm**3,
+            },
+            compounds=(&#34;SOA1&#34;, &#34;SOA2&#34;, &#34;(NH4)2SO4&#34;, &#34;NH4NO3&#34;),
+            is_soluble={
+                &#34;SOA1&#34;: False,
+                &#34;SOA2&#34;: False,
+                &#34;(NH4)2SO4&#34;: True,
+                &#34;NH4NO3&#34;: True,
+            },
+        )
+        self.aerosol_modes = (
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
+                &#34;kappa&#34;: self.kappa(Aitken),
+                &#34;nu_org&#34;: self.nu_org(Aitken),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=1100 / si.cm**3, m_mode=22.7 * si.nm, s_geom=1.75
+                ),
+            },
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Accumulation),
+                &#34;kappa&#34;: self.kappa(Accumulation),
+                &#34;nu_org&#34;: self.nu_org(Accumulation),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=Acc_N2 / si.cm**3,
+                    m_mode=82.2 * si.nm,
+                    s_geom=1.62,
+                ),
+            },
+        )
 
-    return result</code></pre>
-</details>
-</dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.nu_org"><code class="name flex">
-<span>def <span class="ident">nu_org</span></span>(<span>mass_fractions: dict)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def nu_org(mass_fractions: dict):
-    volfrac = volume_fractions(mass_fractions)
-    molar_volumes = {i: molar_masses[i] / densities[i] for i in compounds}
+    color = &#34;yellowgreen&#34;
 
-    _masked = {k: (is_organic[k]) * volfrac[k] for k in compounds}
-    volume_fractions_of_just_org = {k:_masked[k] / sum(list(_masked.values())) for k in compounds}
 
-    _nu = sum(volume_fractions_of_just_org[i] * molar_volumes[i] for i in compounds)
-    return _nu</code></pre>
+@strict
+class AerosolNascent(DryAerosolMixture):
+    def __init__(self, Acc_Forg: float = 0.3, Acc_N2: float = 30):
+        Ultrafine = {
+            &#34;SOA1&#34;: 0.52,
+            &#34;SOA2&#34;: 0,
+            &#34;(NH4)2SO4&#34;: 0.48,
+        }
+        Accumulation = {
+            &#34;SOA1&#34;: 0,
+            &#34;SOA2&#34;: Acc_Forg,
+            &#34;(NH4)2SO4&#34;: (1 - Acc_Forg),
+        }
+        super().__init__(
+            ionic_dissociation_phi={
+                &#34;SOA1&#34;: 1,
+                &#34;SOA2&#34;: 1,
+                &#34;(NH4)2SO4&#34;: 3,
+            },
+            molar_masses={
+                &#34;SOA1&#34;: 190 * si.g / si.mole,
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+                &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
+                * si.gram
+                / si.mole,
+            },
+            densities={
+                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
+            },
+            compounds=(&#34;SOA1&#34;, &#34;SOA2&#34;, &#34;(NH4)2SO4&#34;),
+            is_soluble={
+                &#34;SOA1&#34;: False,
+                &#34;SOA2&#34;: False,
+                &#34;(NH4)2SO4&#34;: True,
+            },
+        )
+        self.aerosol_modes = (
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Ultrafine),
+                &#34;kappa&#34;: self.kappa(Ultrafine),
+                &#34;nu_org&#34;: self.nu_org(Ultrafine),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=2000 / si.cm**3, m_mode=11.5 * si.nm, s_geom=1.71
+                ),
+            },
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Accumulation),
+                &#34;kappa&#34;: self.kappa(Accumulation),
+                &#34;nu_org&#34;: self.nu_org(Accumulation),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=100 * si.nm, s_geom=1.70
+                ),
+            },
+        )
+
+    color = &#34;orangered&#34;</code></pre>
 </details>
-</dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.volume_fractions"><code class="name flex">
-<span>def <span class="ident">volume_fractions</span></span>(<span>mass_fractions: dict)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def volume_fractions(mass_fractions: dict):
-    return {
-        k: (mass_fractions[k] / densities[k]) / sum(
-            mass_fractions[i] / densities[i] for i in compounds
-        ) for k in compounds
-    }</code></pre>
-</details>
-</dd>
-</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol"><code class="flex name class">
-<span>class <span class="ident">Aerosol</span></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Aerosol:
-    pass</code></pre>
-</details>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal">AerosolBoreal</a></li>
-<li><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine">AerosolMarine</a></li>
-<li><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent">AerosolNascent</a></li>
-</ul>
-</dd>
 <dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal"><code class="flex name class">
 <span>class <span class="ident">AerosolBoreal</span></span>
+<span>(</span><span>Acc_Forg: float = 0.668, Acc_N2: float = 540)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -358,64 +244,80 @@ class AerosolNascent(Aerosol):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@strict
-class AerosolBoreal(Aerosol):
-    # note: SOA1 or SOA2 unclear from the paper
-    Aitken = {
-        &#39;palmitic&#39;: 0,
-        &#39;SOA1&#39;: 0.668,
-        &#39;SOA2&#39;: 0,
-        &#39;(NH4)2SO4&#39;: 0.166,
-        &#39;NH4NO3&#39;: 0.166,
-        &#39;NaCl&#39;: 0
-    }
-    Accumulation = {
-        &#39;palmitic&#39;: 0,
-        &#39;SOA1&#39;: 0,
-        &#39;SOA2&#39;: 0.668,
-        &#39;(NH4)2SO4&#39;: 0.166,
-        &#39;NH4NO3&#39;: 0.166,
-        &#39;NaCl&#39;: 0
-    }
+class AerosolBoreal(DryAerosolMixture):
+    def __init__(self, Acc_Forg: float = 0.668, Acc_N2: float = 540):
+        # note: SOA1 or SOA2 unclear from the paper
+        Aitken = {
+            &#34;SOA1&#34;: 0.668,
+            &#34;SOA2&#34;: 0,
+            &#34;(NH4)2SO4&#34;: 0.166,
+            &#34;NH4NO3&#34;: 0.166,
+        }
+        Accumulation = {
+            &#34;SOA1&#34;: 0,
+            &#34;SOA2&#34;: Acc_Forg,
+            &#34;(NH4)2SO4&#34;: (1 - Acc_Forg) / 2,
+            &#34;NH4NO3&#34;: (1 - Acc_Forg) / 2,
+        }
 
-    def __init__(self):
-        self.aerosol_modes_per_cc = (
-        {
-            &#39;f_org&#39;: f_org_volume(self.Aitken),
-            &#39;kappa&#39;: kappa(self.Aitken),
-            &#39;nu_org&#39;: nu_org(self.Aitken),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=1100 / si.cm ** 3,
-                m_mode=22.7 * si.nm,
-                s_geom=1.75
-            )
-        },
-        {
-            &#39;f_org&#39;: f_org_volume(self.Accumulation),
-            &#39;kappa&#39;: kappa(self.Accumulation),
-            &#39;nu_org&#39;: nu_org(self.Accumulation),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=540 / si.cm ** 3,
-                m_mode=82.2 * si.nm,
-                s_geom=1.62
-            )
-        },
-    )
-    color = &#39;yellowgreen&#39;</code></pre>
+        super().__init__(
+            ionic_dissociation_phi={
+                &#34;SOA1&#34;: 1,
+                &#34;SOA2&#34;: 1,
+                &#34;(NH4)2SO4&#34;: 3,
+                &#34;NH4NO3&#34;: 2,
+            },
+            molar_masses={
+                &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
+                * si.gram
+                / si.mole,
+                &#34;NH4NO3&#34;: Substance.from_formula(&#34;NH4NO3&#34;).mass * si.gram / si.mole,
+                &#34;SOA1&#34;: 190 * si.g / si.mole,
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+            },
+            densities={
+                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
+                &#34;NH4NO3&#34;: 1.72 * si.g / si.cm**3,
+            },
+            compounds=(&#34;SOA1&#34;, &#34;SOA2&#34;, &#34;(NH4)2SO4&#34;, &#34;NH4NO3&#34;),
+            is_soluble={
+                &#34;SOA1&#34;: False,
+                &#34;SOA2&#34;: False,
+                &#34;(NH4)2SO4&#34;: True,
+                &#34;NH4NO3&#34;: True,
+            },
+        )
+        self.aerosol_modes = (
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
+                &#34;kappa&#34;: self.kappa(Aitken),
+                &#34;nu_org&#34;: self.nu_org(Aitken),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=1100 / si.cm**3, m_mode=22.7 * si.nm, s_geom=1.75
+                ),
+            },
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Accumulation),
+                &#34;kappa&#34;: self.kappa(Accumulation),
+                &#34;nu_org&#34;: self.nu_org(Accumulation),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=Acc_N2 / si.cm**3,
+                    m_mode=82.2 * si.nm,
+                    s_geom=1.62,
+                ),
+            },
+        )
+
+    color = &#34;yellowgreen&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol" href="#PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol">Aerosol</a></li>
+<li>PySDM.initialisation.aerosol_composition.dry_aerosol.DryAerosolMixture</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.Accumulation"><code class="name">var <span class="ident">Accumulation</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.Aitken"><code class="name">var <span class="ident">Aitken</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.color"><code class="name">var <span class="ident">color</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -424,6 +326,7 @@ class AerosolBoreal(Aerosol):
 </dd>
 <dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine"><code class="flex name class">
 <span>class <span class="ident">AerosolMarine</span></span>
+<span>(</span><span>Acc_Forg: float = 0.2, Acc_N2: float = 134)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -432,49 +335,71 @@ class AerosolBoreal(Aerosol):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@strict
-class AerosolMarine(Aerosol):
-    Aitken = {&#39;palmitic&#39;: .2, &#39;SOA1&#39;: 0, &#39;SOA2&#39;: 0, &#39;(NH4)2SO4&#39;: .8, &#39;NH4NO3&#39;: 0, &#39;NaCl&#39;: 0}
-    Accumulation = {&#39;palmitic&#39;: .2, &#39;SOA1&#39;: 0, &#39;SOA2&#39;: 0, &#39;(NH4)2SO4&#39;: 0, &#39;NH4NO3&#39;: .8, &#39;NaCl&#39;: 0}
-
-    def __init__(self):
-        self.aerosol_modes_per_cc = (
-        {
-            &#39;f_org&#39;: f_org_volume(self.Aitken),
-            &#39;kappa&#39;: kappa(self.Aitken),
-            &#39;nu_org&#39;: nu_org(self.Aitken),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=226 / si.cm ** 3,
-                m_mode=19.6 * si.nm,
-                s_geom=1.71
-            )
-        },
-        {
-            &#39;f_org&#39;: f_org_volume(self.Accumulation),
-            &#39;kappa&#39;: kappa(self.Accumulation),
-            &#39;nu_org&#39;: nu_org(self.Accumulation),
-            &#39;spectrum&#39;: spectra.Lognormal(
-                norm_factor=134 / si.cm ** 3,
-                m_mode=69.5 * si.nm,
-                s_geom=1.7
-            ),
+class AerosolMarine(DryAerosolMixture):
+    def __init__(self, Acc_Forg: float = 0.2, Acc_N2: float = 134):
+        Aitken = {
+            &#34;palmitic&#34;: 0.2,
+            &#34;(NH4)2SO4&#34;: 0.8,
+            &#34;NaCl&#34;: 0,
         }
-    )
-    color = &#39;dodgerblue&#39;</code></pre>
+        Accumulation = {
+            &#34;palmitic&#34;: Acc_Forg,
+            &#34;(NH4)2SO4&#34;: 0,
+            &#34;NaCl&#34;: (1 - Acc_Forg),
+        }
+
+        super().__init__(
+            ionic_dissociation_phi={
+                &#34;palmitic&#34;: 1,
+                &#34;(NH4)2SO4&#34;: 3,
+                &#34;NaCl&#34;: 2,
+            },
+            is_soluble={
+                &#34;palmitic&#34;: False,
+                &#34;(NH4)2SO4&#34;: True,
+                &#34;NaCl&#34;: True,
+            },
+            densities={
+                &#34;palmitic&#34;: 0.852 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
+                &#34;NaCl&#34;: 2.16 * si.g / si.cm**3,
+            },
+            compounds=(&#34;palmitic&#34;, &#34;(NH4)2SO4&#34;, &#34;NaCl&#34;),
+            molar_masses={
+                &#34;palmitic&#34;: 256.4 * si.g / si.mole,
+                &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
+                * si.gram
+                / si.mole,
+                &#34;NaCl&#34;: Substance.from_formula(&#34;NaCl&#34;).mass * si.gram / si.mole,
+            },
+        )
+        self.aerosol_modes = (
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
+                &#34;kappa&#34;: self.kappa(Aitken),
+                &#34;nu_org&#34;: self.nu_org(Aitken),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=226 / si.cm**3, m_mode=19.6 * si.nm, s_geom=1.71
+                ),
+            },
+            {
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Accumulation),
+                &#34;kappa&#34;: self.kappa(Accumulation),
+                &#34;nu_org&#34;: self.nu_org(Accumulation),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=69.5 * si.nm, s_geom=1.7
+                ),
+            },
+        )
+
+    color = &#34;dodgerblue&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol" href="#PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol">Aerosol</a></li>
+<li>PySDM.initialisation.aerosol_composition.dry_aerosol.DryAerosolMixture</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.Accumulation"><code class="name">var <span class="ident">Accumulation</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.Aitken"><code class="name">var <span class="ident">Aitken</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.color"><code class="name">var <span class="ident">color</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -483,6 +408,7 @@ class AerosolMarine(Aerosol):
 </dd>
 <dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent"><code class="flex name class">
 <span>class <span class="ident">AerosolNascent</span></span>
+<span>(</span><span>Acc_Forg: float = 0.3, Acc_N2: float = 30)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -491,49 +417,70 @@ class AerosolMarine(Aerosol):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@strict
-class AerosolNascent(Aerosol):
-    Ultrafine = {&#39;palmitic&#39;: 0, &#39;SOA1&#39;: .52, &#39;SOA2&#39;: 0, &#39;(NH4)2SO4&#39;: .48, &#39;NH4NO3&#39;: 0, &#39;NaCl&#39;: 0}
-    Accumulation = {&#39;palmitic&#39;: 0, &#39;SOA1&#39;: 0, &#39;SOA2&#39;: .3, &#39;(NH4)2SO4&#39;: .7, &#39;NH4NO3&#39;: 0, &#39;NaCl&#39;: 0}
-
-    def __init__(self):
-        self.aerosol_modes_per_cc = (
+class AerosolNascent(DryAerosolMixture):
+    def __init__(self, Acc_Forg: float = 0.3, Acc_N2: float = 30):
+        Ultrafine = {
+            &#34;SOA1&#34;: 0.52,
+            &#34;SOA2&#34;: 0,
+            &#34;(NH4)2SO4&#34;: 0.48,
+        }
+        Accumulation = {
+            &#34;SOA1&#34;: 0,
+            &#34;SOA2&#34;: Acc_Forg,
+            &#34;(NH4)2SO4&#34;: (1 - Acc_Forg),
+        }
+        super().__init__(
+            ionic_dissociation_phi={
+                &#34;SOA1&#34;: 1,
+                &#34;SOA2&#34;: 1,
+                &#34;(NH4)2SO4&#34;: 3,
+            },
+            molar_masses={
+                &#34;SOA1&#34;: 190 * si.g / si.mole,
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+                &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
+                * si.gram
+                / si.mole,
+            },
+            densities={
+                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
+            },
+            compounds=(&#34;SOA1&#34;, &#34;SOA2&#34;, &#34;(NH4)2SO4&#34;),
+            is_soluble={
+                &#34;SOA1&#34;: False,
+                &#34;SOA2&#34;: False,
+                &#34;(NH4)2SO4&#34;: True,
+            },
+        )
+        self.aerosol_modes = (
             {
-                &#39;f_org&#39;: f_org_volume(self.Ultrafine),
-                &#39;kappa&#39;: kappa(self.Ultrafine),
-                &#39;nu_org&#39;: nu_org(self.Ultrafine),
-                &#39;spectrum&#39;: spectra.Lognormal(
-                    norm_factor=2000 / si.cm ** 3,
-                    m_mode=11.5 * si.nm,
-                    s_geom=1.71
-                )
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Ultrafine),
+                &#34;kappa&#34;: self.kappa(Ultrafine),
+                &#34;nu_org&#34;: self.nu_org(Ultrafine),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=2000 / si.cm**3, m_mode=11.5 * si.nm, s_geom=1.71
+                ),
             },
             {
-                &#39;f_org&#39;: f_org_volume(self.Accumulation),
-                &#39;kappa&#39;: kappa(self.Accumulation),
-                &#39;nu_org&#39;: nu_org(self.Accumulation),
-                &#39;spectrum&#39;: spectra.Lognormal(
-                    norm_factor=30 / si.cm ** 3,
-                    m_mode=100 * si.nm,
-                    s_geom=1.70
+                &#34;f_org&#34;: 1 - self.f_soluble_volume(Accumulation),
+                &#34;kappa&#34;: self.kappa(Accumulation),
+                &#34;nu_org&#34;: self.nu_org(Accumulation),
+                &#34;spectrum&#34;: spectra.Lognormal(
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=100 * si.nm, s_geom=1.70
                 ),
-            }
+            },
         )
-    color = &#39;orangered&#39;</code></pre>
+
+    color = &#34;orangered&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol" href="#PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol">Aerosol</a></li>
+<li>PySDM.initialisation.aerosol_composition.dry_aerosol.DryAerosolMixture</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.Accumulation"><code class="name">var <span class="ident">Accumulation</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.Ultrafine"><code class="name">var <span class="ident">Ultrafine</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.color"><code class="name">var <span class="ident">color</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -554,40 +501,23 @@ class AerosolNascent(Aerosol):
 <li><code><a title="PySDM_examples.Lowe_et_al_2019" href="index.html">PySDM_examples.Lowe_et_al_2019</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.f_org_volume" href="#PySDM_examples.Lowe_et_al_2019.aerosol.f_org_volume">f_org_volume</a></code></li>
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.kappa" href="#PySDM_examples.Lowe_et_al_2019.aerosol.kappa">kappa</a></code></li>
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.nu_org" href="#PySDM_examples.Lowe_et_al_2019.aerosol.nu_org">nu_org</a></code></li>
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.volume_fractions" href="#PySDM_examples.Lowe_et_al_2019.aerosol.volume_fractions">volume_fractions</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol" href="#PySDM_examples.Lowe_et_al_2019.aerosol.Aerosol">Aerosol</a></code></h4>
-</li>
-<li>
 <h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal">AerosolBoreal</a></code></h4>
 <ul class="">
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.Accumulation" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.Accumulation">Accumulation</a></code></li>
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.Aitken" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.Aitken">Aitken</a></code></li>
 <li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.color">color</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine">AerosolMarine</a></code></h4>
 <ul class="">
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.Accumulation" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.Accumulation">Accumulation</a></code></li>
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.Aitken" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.Aitken">Aitken</a></code></li>
 <li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.color">color</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent">AerosolNascent</a></code></h4>
 <ul class="">
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.Accumulation" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.Accumulation">Accumulation</a></code></li>
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.Ultrafine" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.Ultrafine">Ultrafine</a></code></li>
 <li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.color">color</a></code></li>
 </ul>
 </li>

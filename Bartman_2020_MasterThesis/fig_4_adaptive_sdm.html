@@ -27,21 +27,24 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import os
+
 from matplotlib import pyplot as plt
-from PySDM_examples.Shima_et_al_2009.settings import Settings
+
 from PySDM_examples.Shima_et_al_2009.example import run
+from PySDM_examples.Shima_et_al_2009.settings import Settings
 from PySDM_examples.Shima_et_al_2009.spectrum_plotter import SpectrumPlotter
 
 
 def main(plot: bool = True, save: str = None):
     n_sds = [13, 15, 17]
-    dts = [10, 5, 1, &#39;adaptive&#39;]
+    dts = [10, 5, 1, &#34;adaptive&#34;]
     iters = 10
     base_time = None
 
     plt.ioff()
-    fig, axs = plt.subplots(len(dts), len(n_sds),
-                            sharex=True, sharey=True, figsize=(10, 10))
+    fig, axs = plt.subplots(
+        len(dts), len(n_sds), sharex=True, sharey=True, figsize=(10, 10)
+    )
 
     for i, dt in enumerate(dts):
         for j, n_sd in enumerate(n_sds):
@@ -50,9 +53,9 @@ def main(plot: bool = True, save: str = None):
             for _ in range(iters):
                 settings = Settings()
 
-                settings.n_sd = 2 ** n_sd
-                settings.dt = dt if dt != &#39;adaptive&#39; else 10
-                settings.adaptive = dt == &#39;adaptive&#39;
+                settings.n_sd = 2**n_sd
+                settings.dt = dt if dt != &#34;adaptive&#34; else 10
+                settings.adaptive = dt == &#34;adaptive&#34;
 
                 states, exec_time = run(settings)
                 outputs.append(states)
@@ -62,7 +65,9 @@ def main(plot: bool = True, save: str = None):
             norm_time = mean_time / base_time
             mean_output = {}
             for key in outputs[0].keys():
-                mean_output[key] = sum((output[key] for output in outputs)) / len(outputs)
+                mean_output[key] = sum((output[key] for output in outputs)) / len(
+                    outputs
+                )
 
             plotter = SpectrumPlotter(settings, legend=False)
             plotter.fig = fig
@@ -71,25 +76,28 @@ def main(plot: bool = True, save: str = None):
             for step, vals in mean_output.items():
                 plotter.plot(vals, step * settings.dt)
 
-            plotter.ylabel = r&#39;$\bf{dt: &#39; + str(dt) + &#39;}$\ndm/dlnr [g/m^3/(unit dr/r)]&#39; \
-                if j == 0 else None
-            plotter.xlabel = &#39;particle radius [µm]\n&#39; \
-                             + r&#39;$\bf{n_{sd}: 2^{&#39; + str(n_sd) + &#39;}}$&#39;\
-                if i == len(dts) - 1 else None
-            plotter.title = f&#39;norm. time: {norm_time:.2f}; &#39; + plotter.title
+            plotter.ylabel = (
+                r&#34;$\bf{dt: &#34; + str(dt) + &#34;}$\ndm/dlnr [g/m^3/(unit dr/r)]&#34;
+                if j == 0
+                else None
+            )
+            plotter.xlabel = (
+                &#34;particle radius [µm]\n&#34; + r&#34;$\bf{n_{sd}: 2^{&#34; + str(n_sd) + &#34;}}$&#34;
+                if i == len(dts) - 1
+                else None
+            )
+            plotter.title = f&#34;norm. time: {norm_time:.2f}; &#34; + plotter.title
             plotter.finished = False
             plotter.finish()
     if save is not None:
         n_sd = settings.n_sd
-        plotter.save(save + &#34;/&#34; +
-                     f&#34;{n_sd}_shima_fig_2&#34; +
-                     &#34;.&#34; + plotter.format)
+        plotter.save(save + &#34;/&#34; + f&#34;{n_sd}_shima_fig_2&#34; + &#34;.&#34; + plotter.format)
     if plot:
         plotter.show()
 
 
-if __name__ == &#39;__main__&#39;:
-    main(plot=&#39;CI&#39; not in os.environ, save=&#39;.&#39;)</code></pre>
+if __name__ == &#34;__main__&#34;:
+    main(plot=&#34;CI&#34; not in os.environ, save=&#34;.&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -110,13 +118,14 @@ if __name__ == &#39;__main__&#39;:
 </summary>
 <pre><code class="python">def main(plot: bool = True, save: str = None):
     n_sds = [13, 15, 17]
-    dts = [10, 5, 1, &#39;adaptive&#39;]
+    dts = [10, 5, 1, &#34;adaptive&#34;]
     iters = 10
     base_time = None
 
     plt.ioff()
-    fig, axs = plt.subplots(len(dts), len(n_sds),
-                            sharex=True, sharey=True, figsize=(10, 10))
+    fig, axs = plt.subplots(
+        len(dts), len(n_sds), sharex=True, sharey=True, figsize=(10, 10)
+    )
 
     for i, dt in enumerate(dts):
         for j, n_sd in enumerate(n_sds):
@@ -125,9 +134,9 @@ if __name__ == &#39;__main__&#39;:
             for _ in range(iters):
                 settings = Settings()
 
-                settings.n_sd = 2 ** n_sd
-                settings.dt = dt if dt != &#39;adaptive&#39; else 10
-                settings.adaptive = dt == &#39;adaptive&#39;
+                settings.n_sd = 2**n_sd
+                settings.dt = dt if dt != &#34;adaptive&#34; else 10
+                settings.adaptive = dt == &#34;adaptive&#34;
 
                 states, exec_time = run(settings)
                 outputs.append(states)
@@ -137,7 +146,9 @@ if __name__ == &#39;__main__&#39;:
             norm_time = mean_time / base_time
             mean_output = {}
             for key in outputs[0].keys():
-                mean_output[key] = sum((output[key] for output in outputs)) / len(outputs)
+                mean_output[key] = sum((output[key] for output in outputs)) / len(
+                    outputs
+                )
 
             plotter = SpectrumPlotter(settings, legend=False)
             plotter.fig = fig
@@ -146,19 +157,22 @@ if __name__ == &#39;__main__&#39;:
             for step, vals in mean_output.items():
                 plotter.plot(vals, step * settings.dt)
 
-            plotter.ylabel = r&#39;$\bf{dt: &#39; + str(dt) + &#39;}$\ndm/dlnr [g/m^3/(unit dr/r)]&#39; \
-                if j == 0 else None
-            plotter.xlabel = &#39;particle radius [µm]\n&#39; \
-                             + r&#39;$\bf{n_{sd}: 2^{&#39; + str(n_sd) + &#39;}}$&#39;\
-                if i == len(dts) - 1 else None
-            plotter.title = f&#39;norm. time: {norm_time:.2f}; &#39; + plotter.title
+            plotter.ylabel = (
+                r&#34;$\bf{dt: &#34; + str(dt) + &#34;}$\ndm/dlnr [g/m^3/(unit dr/r)]&#34;
+                if j == 0
+                else None
+            )
+            plotter.xlabel = (
+                &#34;particle radius [µm]\n&#34; + r&#34;$\bf{n_{sd}: 2^{&#34; + str(n_sd) + &#34;}}$&#34;
+                if i == len(dts) - 1
+                else None
+            )
+            plotter.title = f&#34;norm. time: {norm_time:.2f}; &#34; + plotter.title
             plotter.finished = False
             plotter.finish()
     if save is not None:
         n_sd = settings.n_sd
-        plotter.save(save + &#34;/&#34; +
-                     f&#34;{n_sd}_shima_fig_2&#34; +
-                     &#34;.&#34; + plotter.format)
+        plotter.save(save + &#34;/&#34; + f&#34;{n_sd}_shima_fig_2&#34; + &#34;.&#34; + plotter.format)
     if plot:
         plotter.show()</code></pre>
 </details>

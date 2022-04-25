@@ -43,7 +43,7 @@ class BasicSimulation:
     def _run(self, nt, steps_per_output_interval):
         output = {k: [] for k in self.particulator.products}
         self._save(output)
-        for _ in range(0, nt+1, steps_per_output_interval):
+        for _ in range(0, nt + 1, steps_per_output_interval):
             self.particulator.run(steps=steps_per_output_interval)
             self._save(output)
         return output</code></pre>
@@ -82,7 +82,7 @@ class BasicSimulation:
     def _run(self, nt, steps_per_output_interval):
         output = {k: [] for k in self.particulator.products}
         self._save(output)
-        for _ in range(0, nt+1, steps_per_output_interval):
+        for _ in range(0, nt + 1, steps_per_output_interval):
             self.particulator.run(steps=steps_per_output_interval)
             self._save(output)
         return output</code></pre>
@@ -90,6 +90,8 @@ class BasicSimulation:
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="PySDM_examples.Kreidenweis_et_al_2003.simulation.Simulation" href="../Kreidenweis_et_al_2003/simulation.html#PySDM_examples.Kreidenweis_et_al_2003.simulation.Simulation">Simulation</a></li>
+<li><a title="PySDM_examples.Lowe_et_al_2019.simulation.Simulation" href="../Lowe_et_al_2019/simulation.html#PySDM_examples.Lowe_et_al_2019.simulation.Simulation">Simulation</a></li>
+<li><a title="PySDM_examples.Pyrcel.simulation.Simulation" href="../Pyrcel/simulation.html#PySDM_examples.Pyrcel.simulation.Simulation">Simulation</a></li>
 </ul>
 </dd>
 </dl>

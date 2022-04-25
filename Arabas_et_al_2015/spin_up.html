@@ -26,24 +26,23 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from PySDM.dynamics import Displacement, Coalescence, Freezing
+<pre><code class="python">from PySDM.dynamics import Collision, Displacement, Freezing
 
 
 class SpinUp:
-
     def __init__(self, particulator, spin_up_steps):
         self.spin_up_steps = spin_up_steps
         particulator.observers.append(self)
         self.particulator = particulator
-        self.set(Coalescence, &#39;enable&#39;, False)
-        self.set(Displacement, &#39;enable_sedimentation&#39;, False)
-        self.set(Freezing, &#39;enable&#39;, False)
+        self.set(Collision, &#34;enable&#34;, False)
+        self.set(Displacement, &#34;enable_sedimentation&#34;, False)
+        self.set(Freezing, &#34;enable&#34;, False)
 
     def notify(self):
         if self.particulator.n_steps == self.spin_up_steps:
-            self.set(Coalescence, &#39;enable&#39;, True)
-            self.set(Displacement, &#39;enable_sedimentation&#39;, True)
-            self.set(Freezing, &#39;enable&#39;, True)
+            self.set(Collision, &#34;enable&#34;, True)
+            self.set(Displacement, &#34;enable_sedimentation&#34;, True)
+            self.set(Freezing, &#34;enable&#34;, True)
 
     def set(self, dynamic, attr, value):
         key = dynamic.__name__
@@ -71,20 +70,19 @@ class SpinUp:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SpinUp:
-
     def __init__(self, particulator, spin_up_steps):
         self.spin_up_steps = spin_up_steps
         particulator.observers.append(self)
         self.particulator = particulator
-        self.set(Coalescence, &#39;enable&#39;, False)
-        self.set(Displacement, &#39;enable_sedimentation&#39;, False)
-        self.set(Freezing, &#39;enable&#39;, False)
+        self.set(Collision, &#34;enable&#34;, False)
+        self.set(Displacement, &#34;enable_sedimentation&#34;, False)
+        self.set(Freezing, &#34;enable&#34;, False)
 
     def notify(self):
         if self.particulator.n_steps == self.spin_up_steps:
-            self.set(Coalescence, &#39;enable&#39;, True)
-            self.set(Displacement, &#39;enable_sedimentation&#39;, True)
-            self.set(Freezing, &#39;enable&#39;, True)
+            self.set(Collision, &#34;enable&#34;, True)
+            self.set(Displacement, &#34;enable_sedimentation&#34;, True)
+            self.set(Freezing, &#34;enable&#34;, True)
 
     def set(self, dynamic, attr, value):
         key = dynamic.__name__
@@ -104,9 +102,9 @@ class SpinUp:
 </summary>
 <pre><code class="python">def notify(self):
     if self.particulator.n_steps == self.spin_up_steps:
-        self.set(Coalescence, &#39;enable&#39;, True)
-        self.set(Displacement, &#39;enable_sedimentation&#39;, True)
-        self.set(Freezing, &#39;enable&#39;, True)</code></pre>
+        self.set(Collision, &#34;enable&#34;, True)
+        self.set(Displacement, &#34;enable_sedimentation&#34;, True)
+        self.set(Freezing, &#34;enable&#34;, True)</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Arabas_et_al_2015.spin_up.SpinUp.set"><code class="name flex">

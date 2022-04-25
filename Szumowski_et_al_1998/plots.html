@@ -34,13 +34,15 @@ from PySDM.physics import constants as const
 class _Plot:
     def __init__(self, fig, ax):
         self.fig, self.ax = fig, ax
-        self.ax.set_title(&#39; &#39;)
+        self.ax.set_title(&#34; &#34;)
 
 
 class _ImagePlot(_Plot):
-    line_args = {&#39;color&#39;: &#39;red&#39;, &#39;alpha&#39;: .666, &#39;linestyle&#39;: &#39;:&#39;, &#39;linewidth&#39;: 3}
+    line_args = {&#34;color&#34;: &#34;red&#34;, &#34;alpha&#34;: 0.666, &#34;linestyle&#34;: &#34;:&#34;, &#34;linewidth&#34;: 3}
 
-    def __init__(self, fig, ax, grid, size, product, show=False, lines=False, cmap=&#39;YlGnBu&#39;):
+    def __init__(
+        self, fig, ax, grid, size, product, show=False, lines=False, cmap=&#34;YlGnBu&#34;
+    ):
         super().__init__(fig, ax)
         self.nans = np.full(grid, np.nan)
 
@@ -54,23 +56,20 @@ class _ImagePlot(_Plot):
         self.ax.set_ylim(zlim)
 
         if lines:
-            self.lines = {&#39;X&#39;: [None]*2, &#39;Z&#39;: [None]*2}
-            self.lines[&#39;X&#39;][0] = plt.plot([-1] * 2, zlim, **self.line_args)[0]
-            self.lines[&#39;Z&#39;][0] = plt.plot(xlim, [-1] * 2, **self.line_args)[0]
-            self.lines[&#39;X&#39;][1] = plt.plot([-1] * 2, zlim, **self.line_args)[0]
-            self.lines[&#39;Z&#39;][1] = plt.plot(xlim, [-1] * 2, **self.line_args)[0]
+            self.lines = {&#34;X&#34;: [None] * 2, &#34;Z&#34;: [None] * 2}
+            self.lines[&#34;X&#34;][0] = plt.plot([-1] * 2, zlim, **self.line_args)[0]
+            self.lines[&#34;Z&#34;][0] = plt.plot(xlim, [-1] * 2, **self.line_args)[0]
+            self.lines[&#34;X&#34;][1] = plt.plot([-1] * 2, zlim, **self.line_args)[0]
+            self.lines[&#34;Z&#34;][1] = plt.plot(xlim, [-1] * 2, **self.line_args)[0]
 
         data = np.full_like(self.nans, np.nan)
         label = f&#34;{product.name} [{product.unit}]&#34;
 
-        self.ax.set_xlabel(&#39;X [m]&#39;)
-        self.ax.set_ylabel(&#39;Z [m]&#39;)
+        self.ax.set_xlabel(&#34;X [m]&#34;)
+        self.ax.set_ylabel(&#34;Z [m]&#34;)
 
         self.im = self.ax.imshow(
-            self._transpose(data),
-            origin=&#39;lower&#39;,
-            extent=(*xlim, *zlim),
-            cmap=cmap
+            self._transpose(data), origin=&#34;lower&#34;, extent=(*xlim, *zlim), cmap=cmap
         )
         plt.colorbar(self.im, ax=self.ax).set_label(label)
         if show:
@@ -98,30 +97,37 @@ class _ImagePlot(_Plot):
             )
 
     def update_lines(self, focus_x, focus_z):
-        self.lines[&#39;X&#39;][0].set_xdata(x=(focus_x[0]+.25) * self.dx)
-        self.lines[&#39;Z&#39;][0].set_ydata(y=(focus_z[0]+.25) * self.dz)
-        self.lines[&#39;X&#39;][1].set_xdata(x=(focus_x[1]-.25) * self.dx)
-        self.lines[&#39;Z&#39;][1].set_ydata(y=(focus_z[1]-.25) * self.dz)
+        self.lines[&#34;X&#34;][0].set_xdata(x=(focus_x[0] + 0.25) * self.dx)
+        self.lines[&#34;Z&#34;][0].set_ydata(y=(focus_z[0] + 0.25) * self.dz)
+        self.lines[&#34;X&#34;][1].set_xdata(x=(focus_x[1] - 0.25) * self.dx)
+        self.lines[&#34;Z&#34;][1].set_ydata(y=(focus_z[1] - 0.25) * self.dz)
 
 
 class _SpectrumPlot(_Plot):
-
     def __init__(self, r_bins, initial_spectrum_per_mass_of_dry_air, show=True):
         super().__init__(*plt.subplots(1, 1))
         self.ax.set_xlim(np.amin(r_bins), np.amax(r_bins))
         self.ax.set_xlabel(&#34;particle radius [μm]&#34;)
         self.ax.set_ylabel(&#34;specific concentration density [mg$^{-1}$ μm$^{-1}$]&#34;)
-        self.ax.set_xscale(&#39;log&#39;)
-        self.ax.set_yscale(&#39;log&#39;)
+        self.ax.set_xscale(&#34;log&#34;)
+        self.ax.set_yscale(&#34;log&#34;)
         self.ax.set_ylim(1, 5e3)
         self.ax.grid(True)
-        vals = initial_spectrum_per_mass_of_dry_air.size_distribution(r_bins * const.si.um)
+        vals = initial_spectrum_per_mass_of_dry_air.size_distribution(
+            r_bins * const.si.um
+        )
         const.convert_to(vals, const.si.mg**-1 / const.si.um)
-        self.ax.plot(r_bins, vals, label=&#39;spectrum sampled at t=0&#39;)
-        self.spec_wet = self.ax.step(r_bins, np.full_like(r_bins, np.nan),
-                                     label=&#39;binned super-particle wet sizes&#39;)[0]
-        self.spec_dry = self.ax.step(r_bins, np.full_like(r_bins, np.nan),
-                                     label=&#39;binned super-particle dry sizes&#39;)[0]
+        self.ax.plot(r_bins, vals, label=&#34;spectrum sampled at t=0&#34;)
+        self.spec_wet = self.ax.step(
+            r_bins,
+            np.full_like(r_bins, np.nan),
+            label=&#34;binned super-particle wet sizes&#34;,
+        )[0]
+        self.spec_dry = self.ax.step(
+            r_bins,
+            np.full_like(r_bins, np.nan),
+            label=&#34;binned super-particle dry sizes&#34;,
+        )[0]
         self.ax.legend()
         if show:
             plt.show()
@@ -135,7 +141,6 @@ class _SpectrumPlot(_Plot):
 
 
 class _TimeseriesPlot(_Plot):
-
     def __init__(self, fig, ax, times, show=True):
         super().__init__(fig, ax)
         self.ax.set_xlim(0, times[-1])
@@ -143,13 +148,13 @@ class _TimeseriesPlot(_Plot):
         self.ax.set_ylabel(&#34;rainfall [mm/day]&#34;)
         self.ax.grid(True)
         self.ydata = np.full_like(times, np.nan, dtype=float)
-        self.timeseries = self.ax.step(times, self.ydata, where=&#39;pre&#39;)[0]
+        self.timeseries = self.ax.step(times, self.ydata, where=&#34;pre&#34;)[0]
         if show:
             plt.show()
 
     def update(self, data, data_range):
         if data is not None:
-            self.ydata[0:len(data)] = data[:]
+            self.ydata[0 : len(data)] = data[:]
             if data_range[0] != data_range[1]:
                 self.ax.set_ylim(data_range[0], 1.1 * data_range[1])
         else:
@@ -164,12 +169,20 @@ class _TemperaturePlot(_Plot):
         self.ax.set_xlim(np.amax(T_bins), np.amin(T_bins))
         self.ax.set_xlabel(&#34;temperature [K]&#34;)
         self.ax.set_ylabel(&#34;freezable fraction / cdf [1]&#34;)
-        self.ax.set_ylim(-.05, 1.05)
+        self.ax.set_ylim(-0.05, 1.05)
         self.ax.grid(True)
-        self.ax.plot(T_bins, self.formulae.freezing_temperature_spectrum.cdf(T_bins),
-                     label=str(self.formulae.freezing_temperature_spectrum) + &#34; (sampled at t=0)&#34;)
-        self.spec = self.ax.step(T_bins, np.full_like(T_bins, np.nan),
-                                 label=&#39;binned super-particle attributes&#39;, where=&#39;mid&#39;)[0]
+        self.ax.plot(
+            T_bins,
+            self.formulae.freezing_temperature_spectrum.cdf(T_bins),
+            label=str(self.formulae.freezing_temperature_spectrum)
+            + &#34; (sampled at t=0)&#34;,
+        )
+        self.spec = self.ax.step(
+            T_bins,
+            np.full_like(T_bins, np.nan),
+            label=&#34;binned super-particle attributes&#34;,
+            where=&#34;mid&#34;,
+        )[0]
         self.ax.legend()
         if show:
             plt.show()
@@ -185,12 +198,11 @@ class _TerminalVelocityPlot(_Plot):
         super().__init__(*plt.subplots(1, 1))
 
         self.ax.set_xlim(
-            np.amin(radius_bins) / const.si.um,
-            np.amax(radius_bins) / const.si.um
+            np.amin(radius_bins) / const.si.um, np.amax(radius_bins) / const.si.um
         )
         self.ax.set_xlabel(&#34;radius [μm]&#34;)
         self.ax.set_ylabel(&#34;mean terminal velocity [m/s]&#34;)
-        self.ax.set_ylim(0, .1)
+        self.ax.set_ylim(0, 0.1)
         self.ax.grid(True)
 
         self.radius_bins = radius_bins
@@ -203,9 +215,9 @@ class _TerminalVelocityPlot(_Plot):
         #     nans,
         #     marker=&#39;o&#39;
         # )[0]
-                                 # label=&#39;binned super-particle attributes&#39;,
-                                 # where=&#39;mid&#39;
-                                 # )[0]
+        # label=&#39;binned super-particle attributes&#39;,
+        # where=&#39;mid&#39;
+        # )[0]
         # self.ax.legend()
 
         if show:
@@ -215,9 +227,10 @@ class _TerminalVelocityPlot(_Plot):
         self.ax.set_title(f&#34;t/dt_out:{step}&#34;)
         self.ax.collections.clear()
         self.ax.fill_between(
-             (self.radius_bins[:-1] + np.diff(self.radius_bins)/2) / const.si.um,
-            data_min, data_max,
-            color=&#39;gray&#39;
+            (self.radius_bins[:-1] + np.diff(self.radius_bins) / 2) / const.si.um,
+            data_min,
+            data_max,
+            color=&#34;gray&#34;,
         )
         # self.spec.set_ydata(data)</code></pre>
 </details>

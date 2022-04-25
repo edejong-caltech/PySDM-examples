@@ -26,20 +26,24 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import sys
-import os
+<pre><code class="python">import os
+import sys
+
 from atmos_cloud_sim_uj_utils import TemporaryFile
 from PySDM.exporters import NetCDFExporter
-from PySDM_examples.utils.widgets import display, Tab, VBox, HTML
+
 from PySDM_examples.Szumowski_et_al_1998.gui_controller import GUIController
 from PySDM_examples.Szumowski_et_al_1998.gui_viewer import GUIViewer
+from PySDM_examples.utils.widgets import HTML, Tab, VBox, display
 
 
 def launch(settings, simulation, storage):
-    ncdf_file = TemporaryFile(&#39;.nc&#39;)
-    ncdf_exporter = NetCDFExporter(storage, settings, simulation, ncdf_file.absolute_path)
+    ncdf_file = TemporaryFile(&#34;.nc&#34;)
+    ncdf_exporter = NetCDFExporter(
+        storage, settings, simulation, ncdf_file.absolute_path
+    )
 
-    vtk_file = TemporaryFile(&#39;.zip&#39;)
+    vtk_file = TemporaryFile(&#34;.zip&#34;)
 
     viewer = GUIViewer(storage, settings)
     controller = GUIController(simulation, viewer, ncdf_exporter, ncdf_file, vtk_file)
@@ -49,21 +53,21 @@ def launch(settings, simulation, storage):
     tabs = Tab([VBox([controller_box, viewer.box()]), settings.box()])
     tabs.set_title(1, &#34;Settings&#34;)
     tabs.set_title(0, &#34;Simulation&#34;)
-    tabs.observe(controller.reinit, &#39;selected_index&#39;)
+    tabs.observe(controller.reinit, &#34;selected_index&#34;)
 
     # https://github.com/googlecolab/colabtools/issues/1302
     hack = (
-        &#39;&lt;link&#39;
+        &#34;&lt;link&#34;
         &#39; rel=&#34;stylesheet&#34;&#39;
         &#39; href=&#34;https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css&#34;&#39;
-        &#39;&gt; &#39;
+        &#34;&gt; &#34;
     )
-    if &#39;google.colab&#39; in sys.modules:
+    if &#34;google.colab&#34; in sys.modules:
         display(HTML(hack))
 
     display(tabs)
 
-    if &#39;CI&#39; in os.environ:
+    if &#34;CI&#34; in os.environ:
         controller_box.children[1].click()</code></pre>
 </details>
 </section>
@@ -84,10 +88,12 @@ def launch(settings, simulation, storage):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def launch(settings, simulation, storage):
-    ncdf_file = TemporaryFile(&#39;.nc&#39;)
-    ncdf_exporter = NetCDFExporter(storage, settings, simulation, ncdf_file.absolute_path)
+    ncdf_file = TemporaryFile(&#34;.nc&#34;)
+    ncdf_exporter = NetCDFExporter(
+        storage, settings, simulation, ncdf_file.absolute_path
+    )
 
-    vtk_file = TemporaryFile(&#39;.zip&#39;)
+    vtk_file = TemporaryFile(&#34;.zip&#34;)
 
     viewer = GUIViewer(storage, settings)
     controller = GUIController(simulation, viewer, ncdf_exporter, ncdf_file, vtk_file)
@@ -97,21 +103,21 @@ def launch(settings, simulation, storage):
     tabs = Tab([VBox([controller_box, viewer.box()]), settings.box()])
     tabs.set_title(1, &#34;Settings&#34;)
     tabs.set_title(0, &#34;Simulation&#34;)
-    tabs.observe(controller.reinit, &#39;selected_index&#39;)
+    tabs.observe(controller.reinit, &#34;selected_index&#34;)
 
     # https://github.com/googlecolab/colabtools/issues/1302
     hack = (
-        &#39;&lt;link&#39;
+        &#34;&lt;link&#34;
         &#39; rel=&#34;stylesheet&#34;&#39;
         &#39; href=&#34;https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css&#34;&#39;
-        &#39;&gt; &#39;
+        &#34;&gt; &#34;
     )
-    if &#39;google.colab&#39; in sys.modules:
+    if &#34;google.colab&#34; in sys.modules:
         display(HTML(hack))
 
     display(tabs)
 
-    if &#39;CI&#39; in os.environ:
+    if &#34;CI&#34; in os.environ:
         controller_box.children[1].click()</code></pre>
 </details>
 </dd>

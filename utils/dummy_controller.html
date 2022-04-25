@@ -27,11 +27,11 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from contextlib import AbstractContextManager
+
 from PySDM.products import CPUTime, WallTime
 
 
 class DummyController(AbstractContextManager):
-
     def __init__(self):
         self.panic = False
         self.t_last = self.__times()
@@ -42,10 +42,12 @@ class DummyController(AbstractContextManager):
 
     def set_percent(self, value):
         t_curr = self.__times()
-        wall_time = (t_curr[0] - self.t_last[0])
-        cpu_time = (t_curr[1] - self.t_last[1])
-        print(f&#34;{100 * value:.1f}%&#34;
-              f&#34; (times since last print: cpu={cpu_time:.1f}s wall={wall_time:.1f}s)&#34;)
+        wall_time = t_curr[0] - self.t_last[0]
+        cpu_time = t_curr[1] - self.t_last[1]
+        print(
+            f&#34;{100 * value:.1f}%&#34;
+            f&#34; (times since last print: cpu={cpu_time:.1f}s wall={wall_time:.1f}s)&#34;
+        )
         self.t_last = self.__times()
 
     def __enter__(self, *_):
@@ -74,7 +76,6 @@ class DummyController(AbstractContextManager):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DummyController(AbstractContextManager):
-
     def __init__(self):
         self.panic = False
         self.t_last = self.__times()
@@ -85,10 +86,12 @@ class DummyController(AbstractContextManager):
 
     def set_percent(self, value):
         t_curr = self.__times()
-        wall_time = (t_curr[0] - self.t_last[0])
-        cpu_time = (t_curr[1] - self.t_last[1])
-        print(f&#34;{100 * value:.1f}%&#34;
-              f&#34; (times since last print: cpu={cpu_time:.1f}s wall={wall_time:.1f}s)&#34;)
+        wall_time = t_curr[0] - self.t_last[0]
+        cpu_time = t_curr[1] - self.t_last[1]
+        print(
+            f&#34;{100 * value:.1f}%&#34;
+            f&#34; (times since last print: cpu={cpu_time:.1f}s wall={wall_time:.1f}s)&#34;
+        )
         self.t_last = self.__times()
 
     def __enter__(self, *_):
@@ -115,10 +118,12 @@ class DummyController(AbstractContextManager):
 </summary>
 <pre><code class="python">def set_percent(self, value):
     t_curr = self.__times()
-    wall_time = (t_curr[0] - self.t_last[0])
-    cpu_time = (t_curr[1] - self.t_last[1])
-    print(f&#34;{100 * value:.1f}%&#34;
-          f&#34; (times since last print: cpu={cpu_time:.1f}s wall={wall_time:.1f}s)&#34;)
+    wall_time = t_curr[0] - self.t_last[0]
+    cpu_time = t_curr[1] - self.t_last[1]
+    print(
+        f&#34;{100 * value:.1f}%&#34;
+        f&#34; (times since last print: cpu={cpu_time:.1f}s wall={wall_time:.1f}s)&#34;
+    )
     self.t_last = self.__times()</code></pre>
 </details>
 </dd>

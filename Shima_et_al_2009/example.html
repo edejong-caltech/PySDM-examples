@@ -27,13 +27,15 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import os
+
 import numpy as np
 from PySDM.backends import CPU
 from PySDM.builder import Builder
-from PySDM.environments import Box
 from PySDM.dynamics import Coalescence
+from PySDM.environments import Box
 from PySDM.initialisation.sampling.spectral_sampling import ConstantMultiplicity
 from PySDM.products import ParticleVolumeVersusRadiusLogarithmSpectrum, WallTime
+
 from PySDM_examples.Shima_et_al_2009.settings import Settings
 from PySDM_examples.Shima_et_al_2009.spectrum_plotter import SpectrumPlotter
 
@@ -43,54 +45,58 @@ def run(settings, backend=CPU, observers=()):
     builder.set_environment(Box(dv=settings.dv, dt=settings.dt))
     attributes = {}
     sampling = ConstantMultiplicity(settings.spectrum)
-    attributes[&#39;volume&#39;], attributes[&#39;n&#39;] = sampling.sample(settings.n_sd)
+    attributes[&#34;volume&#34;], attributes[&#34;n&#34;] = sampling.sample(settings.n_sd)
     coalescence = Coalescence(settings.kernel, adaptive=settings.adaptive)
     builder.add_dynamic(coalescence)
-    products = (ParticleVolumeVersusRadiusLogarithmSpectrum(
-        settings.radius_bins_edges, name=&#39;dv/dlnr&#39;), WallTime())
+    products = (
+        ParticleVolumeVersusRadiusLogarithmSpectrum(
+            settings.radius_bins_edges, name=&#34;dv/dlnr&#34;
+        ),
+        WallTime(),
+    )
     particulator = builder.build(attributes, products)
-    if hasattr(settings, &#39;u_term&#39;) and &#39;terminal velocity&#39; in particulator.attributes:
-        particulator.attributes[&#39;terminal velocity&#39;].approximation = settings.u_term(particulator)
+    if hasattr(settings, &#34;u_term&#34;) and &#34;terminal velocity&#34; in particulator.attributes:
+        particulator.attributes[&#34;terminal velocity&#34;].approximation = settings.u_term(
+            particulator
+        )
 
     for observer in observers:
         particulator.observers.append(observer)
 
     vals = {}
-    particulator.products[&#39;wall time&#39;].reset()
+    particulator.products[&#34;wall time&#34;].reset()
     for step in settings.output_steps:
         particulator.run(step - particulator.n_steps)
-        vals[step] = particulator.products[&#39;dv/dlnr&#39;].get()[0]
+        vals[step] = particulator.products[&#34;dv/dlnr&#34;].get()[0]
         vals[step][:] *= settings.rho
 
-    exec_time = particulator.products[&#39;wall time&#39;].get()
+    exec_time = particulator.products[&#34;wall time&#34;].get()
     return vals, exec_time
 
 
 def main(plot: bool, save: str):
-    with np.errstate(all=&#39;raise&#39;):
+    with np.errstate(all=&#34;raise&#34;):
         settings = Settings()
 
-        settings.n_sd = 2 ** 15
+        settings.n_sd = 2**15
 
         states, _ = run(settings)
 
-    with np.errstate(invalid=&#39;ignore&#39;):
+    with np.errstate(invalid=&#34;ignore&#34;):
         plotter = SpectrumPlotter(settings)
         plotter.smooth = True
         for step, vals in states.items():
             _ = plotter.plot(vals, step * settings.dt)
-            #assert _ &lt; 200  # TODO #327
+            # assert _ &lt; 200  # TODO #327
         if save is not None:
             n_sd = settings.n_sd
-            plotter.save(save + &#34;/&#34; +
-                         f&#34;{n_sd}_shima_fig_2&#34; +
-                         &#34;.&#34; + plotter.format)
+            plotter.save(save + &#34;/&#34; + f&#34;{n_sd}_shima_fig_2&#34; + &#34;.&#34; + plotter.format)
         if plot:
             plotter.show()
 
 
-if __name__ == &#39;__main__&#39;:
-    main(plot=&#39;CI&#39; not in os.environ, save=None)</code></pre>
+if __name__ == &#34;__main__&#34;:
+    main(plot=&#34;CI&#34; not in os.environ, save=None)</code></pre>
 </details>
 </section>
 <section>
@@ -110,24 +116,22 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def main(plot: bool, save: str):
-    with np.errstate(all=&#39;raise&#39;):
+    with np.errstate(all=&#34;raise&#34;):
         settings = Settings()
 
-        settings.n_sd = 2 ** 15
+        settings.n_sd = 2**15
 
         states, _ = run(settings)
 
-    with np.errstate(invalid=&#39;ignore&#39;):
+    with np.errstate(invalid=&#34;ignore&#34;):
         plotter = SpectrumPlotter(settings)
         plotter.smooth = True
         for step, vals in states.items():
             _ = plotter.plot(vals, step * settings.dt)
-            #assert _ &lt; 200  # TODO #327
+            # assert _ &lt; 200  # TODO #327
         if save is not None:
             n_sd = settings.n_sd
-            plotter.save(save + &#34;/&#34; +
-                         f&#34;{n_sd}_shima_fig_2&#34; +
-                         &#34;.&#34; + plotter.format)
+            plotter.save(save + &#34;/&#34; + f&#34;{n_sd}_shima_fig_2&#34; + &#34;.&#34; + plotter.format)
         if plot:
             plotter.show()</code></pre>
 </details>
@@ -146,26 +150,32 @@ if __name__ == &#39;__main__&#39;:
     builder.set_environment(Box(dv=settings.dv, dt=settings.dt))
     attributes = {}
     sampling = ConstantMultiplicity(settings.spectrum)
-    attributes[&#39;volume&#39;], attributes[&#39;n&#39;] = sampling.sample(settings.n_sd)
+    attributes[&#34;volume&#34;], attributes[&#34;n&#34;] = sampling.sample(settings.n_sd)
     coalescence = Coalescence(settings.kernel, adaptive=settings.adaptive)
     builder.add_dynamic(coalescence)
-    products = (ParticleVolumeVersusRadiusLogarithmSpectrum(
-        settings.radius_bins_edges, name=&#39;dv/dlnr&#39;), WallTime())
+    products = (
+        ParticleVolumeVersusRadiusLogarithmSpectrum(
+            settings.radius_bins_edges, name=&#34;dv/dlnr&#34;
+        ),
+        WallTime(),
+    )
     particulator = builder.build(attributes, products)
-    if hasattr(settings, &#39;u_term&#39;) and &#39;terminal velocity&#39; in particulator.attributes:
-        particulator.attributes[&#39;terminal velocity&#39;].approximation = settings.u_term(particulator)
+    if hasattr(settings, &#34;u_term&#34;) and &#34;terminal velocity&#34; in particulator.attributes:
+        particulator.attributes[&#34;terminal velocity&#34;].approximation = settings.u_term(
+            particulator
+        )
 
     for observer in observers:
         particulator.observers.append(observer)
 
     vals = {}
-    particulator.products[&#39;wall time&#39;].reset()
+    particulator.products[&#34;wall time&#34;].reset()
     for step in settings.output_steps:
         particulator.run(step - particulator.n_steps)
-        vals[step] = particulator.products[&#39;dv/dlnr&#39;].get()[0]
+        vals[step] = particulator.products[&#34;dv/dlnr&#34;].get()[0]
         vals[step][:] *= settings.rho
 
-    exec_time = particulator.products[&#39;wall time&#39;].get()
+    exec_time = particulator.products[&#34;wall time&#34;].get()
     return vals, exec_time</code></pre>
 </details>
 </dd>

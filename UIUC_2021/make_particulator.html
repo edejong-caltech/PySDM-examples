@@ -28,61 +28,72 @@
 </summary>
 <pre><code class="python">import numpy as np
 from PySDM import Builder, Formulae
+from PySDM import products as PySDM_products
 from PySDM.backends import CPU
 from PySDM.dynamics import Freezing
 from PySDM.environments import Box
 from PySDM.initialisation.sampling.spectral_sampling import ConstantMultiplicity
-from PySDM.initialisation.sampling.spectro_glacial_sampling import SpectroGlacialSampling
-from PySDM import products as PySDM_products
-
+from PySDM.initialisation.sampling.spectro_glacial_sampling import (
+    SpectroGlacialSampling,
+)
 
 A_VALUE_LARGER_THAN_ONE = 44
 
 
-def make_particulator(*, constants, n_sd, dt, initial_temperature, singular, seed,
-                      shima_T_fz, ABIFM_spec, droplet_volume, total_particle_number, volume):
-    attributes = {
-        &#39;volume&#39;: np.ones(n_sd) * droplet_volume
-    }
+def make_particulator(
+    *,
+    constants,
+    n_sd,
+    dt,
+    initial_temperature,
+    singular,
+    seed,
+    shima_T_fz,
+    ABIFM_spec,
+    droplet_volume,
+    total_particle_number,
+    volume
+):
+    attributes = {&#34;volume&#34;: np.ones(n_sd) * droplet_volume}
 
-    formulae_ctor_args = {&#39;seed&#39;: seed, &#39;constants&#39;: constants}
+    formulae_ctor_args = {&#34;seed&#34;: seed, &#34;constants&#34;: constants}
     if singular:
-        formulae_ctor_args[&#39;freezing_temperature_spectrum&#39;] = shima_T_fz
+        formulae_ctor_args[&#34;freezing_temperature_spectrum&#34;] = shima_T_fz
     else:
-        formulae_ctor_args[&#39;heterogeneous_ice_nucleation_rate&#39;] = &#39;ABIFM&#39;
+        formulae_ctor_args[&#34;heterogeneous_ice_nucleation_rate&#34;] = &#34;ABIFM&#34;
     formulae = Formulae(**formulae_ctor_args)
 
     if singular:
         sampling = SpectroGlacialSampling(
             freezing_temperature_spectrum=formulae.freezing_temperature_spectrum,
             insoluble_surface_spectrum=ABIFM_spec,
-            seed=formulae.seed
+            seed=formulae.seed,
         )
-        attributes[&#39;freezing temperature&#39;], _, attributes[&#39;n&#39;] = sampling.sample(n_sd)
+        attributes[&#34;freezing temperature&#34;], _, attributes[&#34;n&#34;] = sampling.sample(n_sd)
     else:
         sampling = ConstantMultiplicity(
             spectrum=ABIFM_spec,
             # seed=formulae.seed
         )
-        attributes[&#39;immersed surface area&#39;], attributes[&#39;n&#39;] = sampling.sample(n_sd)
-    attributes[&#39;n&#39;] *= total_particle_number
+        attributes[&#34;immersed surface area&#34;], attributes[&#34;n&#34;] = sampling.sample(n_sd)
+    attributes[&#34;n&#34;] *= total_particle_number
 
     builder = Builder(n_sd, CPU(formulae))
 
     env = Box(dt, volume)
     builder.set_environment(env)
-    env[&#39;T&#39;] = initial_temperature
-    env[&#39;RH&#39;] = A_VALUE_LARGER_THAN_ONE
+    env[&#34;T&#34;] = initial_temperature
+    env[&#34;RH&#34;] = A_VALUE_LARGER_THAN_ONE
 
     builder.add_dynamic(Freezing(singular=singular))
 
     return builder.build(
         attributes=attributes,
         products=(
-            PySDM_products.Time(name=&#39;t&#39;),
-            PySDM_products.AmbientTemperature(name=&#39;T&#39;),
-            PySDM_products.SpecificIceWaterContent(name=&#39;qi&#39;)
-        )
+            PySDM_products.Time(name=&#34;t&#34;),
+            PySDM_products.AmbientTemperature(name=&#34;T&#34;),
+            PySDM_products.SpecificIceWaterContent(name=&#34;qi&#34;),
+        ),
     )</code></pre>
 </details>
 </section>
@@ -102,50 +113,60 @@ def make_particulator(*, constants, n_sd, dt, initial_temperature, singular, see
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def make_particulator(*, constants, n_sd, dt, initial_temperature, singular, seed,
-                      shima_T_fz, ABIFM_spec, droplet_volume, total_particle_number, volume):
-    attributes = {
-        &#39;volume&#39;: np.ones(n_sd) * droplet_volume
-    }
+<pre><code class="python">def make_particulator(
+    *,
+    constants,
+    n_sd,
+    dt,
+    initial_temperature,
+    singular,
+    seed,
+    shima_T_fz,
+    ABIFM_spec,
+    droplet_volume,
+    total_particle_number,
+    volume
+):
+    attributes = {&#34;volume&#34;: np.ones(n_sd) * droplet_volume}
 
-    formulae_ctor_args = {&#39;seed&#39;: seed, &#39;constants&#39;: constants}
+    formulae_ctor_args = {&#34;seed&#34;: seed, &#34;constants&#34;: constants}
     if singular:
-        formulae_ctor_args[&#39;freezing_temperature_spectrum&#39;] = shima_T_fz
+        formulae_ctor_args[&#34;freezing_temperature_spectrum&#34;] = shima_T_fz
     else:
-        formulae_ctor_args[&#39;heterogeneous_ice_nucleation_rate&#39;] = &#39;ABIFM&#39;
+        formulae_ctor_args[&#34;heterogeneous_ice_nucleation_rate&#34;] = &#34;ABIFM&#34;
     formulae = Formulae(**formulae_ctor_args)
 
     if singular:
         sampling = SpectroGlacialSampling(
             freezing_temperature_spectrum=formulae.freezing_temperature_spectrum,
             insoluble_surface_spectrum=ABIFM_spec,
-            seed=formulae.seed
+            seed=formulae.seed,
         )
-        attributes[&#39;freezing temperature&#39;], _, attributes[&#39;n&#39;] = sampling.sample(n_sd)
+        attributes[&#34;freezing temperature&#34;], _, attributes[&#34;n&#34;] = sampling.sample(n_sd)
     else:
         sampling = ConstantMultiplicity(
             spectrum=ABIFM_spec,
             # seed=formulae.seed
         )
-        attributes[&#39;immersed surface area&#39;], attributes[&#39;n&#39;] = sampling.sample(n_sd)
-    attributes[&#39;n&#39;] *= total_particle_number
+        attributes[&#34;immersed surface area&#34;], attributes[&#34;n&#34;] = sampling.sample(n_sd)
+    attributes[&#34;n&#34;] *= total_particle_number
 
     builder = Builder(n_sd, CPU(formulae))
 
     env = Box(dt, volume)
     builder.set_environment(env)
-    env[&#39;T&#39;] = initial_temperature
-    env[&#39;RH&#39;] = A_VALUE_LARGER_THAN_ONE
+    env[&#34;T&#34;] = initial_temperature
+    env[&#34;RH&#34;] = A_VALUE_LARGER_THAN_ONE
 
     builder.add_dynamic(Freezing(singular=singular))
 
     return builder.build(
         attributes=attributes,
         products=(
-            PySDM_products.Time(name=&#39;t&#39;),
-            PySDM_products.AmbientTemperature(name=&#39;T&#39;),
-            PySDM_products.SpecificIceWaterContent(name=&#39;qi&#39;)
-        )
+            PySDM_products.Time(name=&#34;t&#34;),
+            PySDM_products.AmbientTemperature(name=&#34;T&#34;),
+            PySDM_products.SpecificIceWaterContent(name=&#34;qi&#34;),
+        ),
     )</code></pre>
 </details>
 </dd>

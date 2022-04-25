@@ -27,88 +27,104 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import numpy as np
-from PySDM.environments import Parcel
+import PySDM.products as PySDM_products
 from PySDM import Builder
 from PySDM.backends import CPU
+from PySDM.backends.impl_numba.test_helpers import bdf
 from PySDM.dynamics import AmbientThermodynamics, Condensation
-from PySDM.initialisation import discretise_multiplicities, equilibrate_wet_radii
+from PySDM.environments import Parcel
+from PySDM.initialisation import equilibrate_wet_radii
 from PySDM.initialisation.spectra import Sum
-import PySDM.products as PySDM_products
+
+from PySDM_examples.utils import BasicSimulation
 
 
-class Simulation:
+class Simulation(BasicSimulation):
     def __init__(self, settings, products=None):
-        env = Parcel(dt=settings.dt,
-                     mass_of_dry_air=settings.mass_of_dry_air,
-                     p0=settings.p0,
-                     q0=settings.q0,
-                     T0=settings.T0,
-                     w=settings.w)
-        n_sd = settings.n_sd_per_mode * len(settings.aerosol.aerosol_modes_per_cc)
+        env = Parcel(
+            dt=settings.dt,
+            mass_of_dry_air=settings.mass_of_dry_air,
+            p0=settings.p0,
+            q0=settings.q0,
+            T0=settings.T0,
+            w=settings.w,
+        )
+        n_sd = settings.n_sd_per_mode * len(settings.aerosol.aerosol_modes)
         builder = Builder(n_sd=n_sd, backend=CPU(formulae=settings.formulae))
         builder.set_environment(env)
 
         attributes = {
-            &#39;dry volume&#39;:np.empty(0),
-            &#39;dry volume organic&#39;:np.empty(0),
-            &#39;kappa times dry volume&#39;:np.empty(0),
-            &#39;n&#39;: np.ndarray(0)
+            &#34;dry volume&#34;: np.empty(0),
+            &#34;dry volume organic&#34;: np.empty(0),
+            &#34;kappa times dry volume&#34;: np.empty(0),
+            &#34;n&#34;: np.ndarray(0),
         }
-        for mode in settings.aerosol.aerosol_modes_per_cc:
+        for mode in settings.aerosol.aerosol_modes:
             r_dry, n_in_dv = settings.spectral_sampling(
-                spectrum=mode[&#39;spectrum&#39;]).sample(settings.n_sd_per_mode)
-            n_in_dv /= (settings.rho0 / settings.mass_of_dry_air)
+                spectrum=mode[&#34;spectrum&#34;]
+            ).sample(settings.n_sd_per_mode)
+            V = settings.mass_of_dry_air / settings.rho0
+            N = n_in_dv * V
             v_dry = settings.formulae.trivia.volume(radius=r_dry)
-            attributes[&#39;n&#39;] = np.append(attributes[&#39;n&#39;], n_in_dv)
-            attributes[&#39;dry volume&#39;] = np.append(attributes[&#39;dry volume&#39;], v_dry)
-            attributes[&#39;dry volume organic&#39;] = np.append(
-                attributes[&#39;dry volume organic&#39;], mode[&#39;f_org&#39;] * v_dry)
-            attributes[&#39;kappa times dry volume&#39;] = np.append(
-                attributes[&#39;kappa times dry volume&#39;], v_dry * mode[&#39;kappa&#39;][settings.model])
+            attributes[&#34;n&#34;] = np.append(attributes[&#34;n&#34;], N)
+            attributes[&#34;dry volume&#34;] = np.append(attributes[&#34;dry volume&#34;], v_dry)
+            attributes[&#34;dry volume organic&#34;] = np.append(
+                attributes[&#34;dry volume organic&#34;], mode[&#34;f_org&#34;] * v_dry
+            )
+            attributes[&#34;kappa times dry volume&#34;] = np.append(
+                attributes[&#34;kappa times dry volume&#34;],
+                v_dry * mode[&#34;kappa&#34;][settings.model],
+            )
         for attribute in attributes.values():
             assert attribute.shape[0] == n_sd
 
-        attributes[&#39;n&#39;] = discretise_multiplicities(attributes[&#39;n&#39;])
-
-        dv = settings.mass_of_dry_air / settings.rho0
         np.testing.assert_approx_equal(
-            np.sum(attributes[&#39;n&#39;]) / dv,
-            Sum(tuple(
-                settings.aerosol.aerosol_modes_per_cc[i][&#39;spectrum&#39;]
-                for i in range(len(settings.aerosol.aerosol_modes_per_cc))
-            )).norm_factor,
-            significant=5
+            np.sum(attributes[&#34;n&#34;]) / V,
+            Sum(
+                tuple(
+                    settings.aerosol.aerosol_modes[i][&#34;spectrum&#34;]
+                    for i in range(len(settings.aerosol.aerosol_modes))
+                )
+            ).norm_factor,
+            significant=5,
         )
         r_wet = equilibrate_wet_radii(
-            r_dry=settings.formulae.trivia.radius(volume=attributes[&#39;dry volume&#39;]),
+            r_dry=settings.formulae.trivia.radius(volume=attributes[&#34;dry volume&#34;]),
             environment=env,
-            kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;],
-            f_org=attributes[&#39;dry volume organic&#39;] / attributes[&#39;dry volume&#39;]
+            kappa_times_dry_volume=attributes[&#34;kappa times dry volume&#34;],
+            f_org=attributes[&#34;dry volume organic&#34;] / attributes[&#34;dry volume&#34;],
         )
-        attributes[&#39;volume&#39;] = settings.formulae.trivia.volume(radius=r_wet)
+        attributes[&#34;volume&#34;] = settings.formulae.trivia.volume(radius=r_wet)
 
-        if settings.model == &#39;bulk&#39;:
-            del attributes[&#39;dry volume organic&#39;]
+        if settings.model == &#34;Constant&#34;:
+            del attributes[&#34;dry volume organic&#34;]
 
         builder.add_dynamic(AmbientThermodynamics())
         builder.add_dynamic(Condensation())
 
         products = products or (
-            PySDM_products.ParcelDisplacement(name=&#39;z&#39;),
-            PySDM_products.Time(name=&#39;t&#39;),
-            PySDM_products.PeakSupersaturation(unit=&#39;%&#39;, name=&#39;S_max&#39;),
-            PySDM_products.ParticleConcentration(name=&#39;n_c_cm3&#39;, unit=&#39;cm^-3&#39;,
-                radius_range=settings.cloud_radius_range),
+            PySDM_products.ParcelDisplacement(name=&#34;z&#34;),
+            PySDM_products.Time(name=&#34;t&#34;),
+            PySDM_products.PeakSupersaturation(unit=&#34;%&#34;, name=&#34;S_max&#34;),
+            PySDM_products.AmbientRelativeHumidity(unit=&#34;%&#34;, name=&#34;RH&#34;),
+            PySDM_products.ParticleConcentration(
+                name=&#34;n_c_cm3&#34;, unit=&#34;cm^-3&#34;, radius_range=settings.cloud_radius_range
+            ),
             PySDM_products.ParticleSizeSpectrumPerVolume(
-                radius_bins_edges=settings.wet_radius_bins_edges),
+                radius_bins_edges=settings.wet_radius_bins_edges
+            ),
+            PySDM_products.ActivableFraction(),
         )
 
-        self.particulator = builder.build(attributes=attributes, products=products)
+        particulator = builder.build(attributes=attributes, products=products)
+        if settings.BDF:
+            bdf.patch_particulator(particulator)
         self.settings = settings
+        super().__init__(particulator=particulator)
 
     def _save_scalars(self, output):
         for k, v in self.particulator.products.items():
-            if len(v.shape) &gt; 1:
+            if len(v.shape) &gt; 1 or k == &#34;activable fraction&#34;:
                 continue
             value = v.get()
             if isinstance(value, np.ndarray) and value.size == 1:
@@ -116,8 +132,8 @@ class Simulation:
             output[k].append(value)
 
     def _save_spectrum(self, output):
-        value = self.particulator.products[&#39;particle size spectrum per volume&#39;].get()
-        output[&#39;spectrum&#39;] = value
+        value = self.particulator.products[&#34;particle size spectrum per volume&#34;].get()
+        output[&#34;spectrum&#34;] = value
 
     def run(self):
         output = {k: [] for k in self.particulator.products}
@@ -125,6 +141,14 @@ class Simulation:
             self.particulator.run(step - self.particulator.n_steps)
             self._save_scalars(output)
         self._save_spectrum(output)
+        if self.settings.BDF:
+            output[&#34;Activated Fraction&#34;] = self.particulator.products[
+                &#34;activable fraction&#34;
+            ].get(S_max=np.nanmax(output[&#34;RH&#34;]) - 100)
+        else:
+            output[&#34;Activated Fraction&#34;] = self.particulator.products[
+                &#34;activable fraction&#34;
+            ].get(S_max=np.nanmax(output[&#34;S_max&#34;]))
         return output</code></pre>
 </details>
 </section>
@@ -147,79 +171,92 @@ class Simulation:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Simulation:
+<pre><code class="python">class Simulation(BasicSimulation):
     def __init__(self, settings, products=None):
-        env = Parcel(dt=settings.dt,
-                     mass_of_dry_air=settings.mass_of_dry_air,
-                     p0=settings.p0,
-                     q0=settings.q0,
-                     T0=settings.T0,
-                     w=settings.w)
-        n_sd = settings.n_sd_per_mode * len(settings.aerosol.aerosol_modes_per_cc)
+        env = Parcel(
+            dt=settings.dt,
+            mass_of_dry_air=settings.mass_of_dry_air,
+            p0=settings.p0,
+            q0=settings.q0,
+            T0=settings.T0,
+            w=settings.w,
+        )
+        n_sd = settings.n_sd_per_mode * len(settings.aerosol.aerosol_modes)
         builder = Builder(n_sd=n_sd, backend=CPU(formulae=settings.formulae))
         builder.set_environment(env)
 
         attributes = {
-            &#39;dry volume&#39;:np.empty(0),
-            &#39;dry volume organic&#39;:np.empty(0),
-            &#39;kappa times dry volume&#39;:np.empty(0),
-            &#39;n&#39;: np.ndarray(0)
+            &#34;dry volume&#34;: np.empty(0),
+            &#34;dry volume organic&#34;: np.empty(0),
+            &#34;kappa times dry volume&#34;: np.empty(0),
+            &#34;n&#34;: np.ndarray(0),
         }
-        for mode in settings.aerosol.aerosol_modes_per_cc:
+        for mode in settings.aerosol.aerosol_modes:
             r_dry, n_in_dv = settings.spectral_sampling(
-                spectrum=mode[&#39;spectrum&#39;]).sample(settings.n_sd_per_mode)
-            n_in_dv /= (settings.rho0 / settings.mass_of_dry_air)
+                spectrum=mode[&#34;spectrum&#34;]
+            ).sample(settings.n_sd_per_mode)
+            V = settings.mass_of_dry_air / settings.rho0
+            N = n_in_dv * V
             v_dry = settings.formulae.trivia.volume(radius=r_dry)
-            attributes[&#39;n&#39;] = np.append(attributes[&#39;n&#39;], n_in_dv)
-            attributes[&#39;dry volume&#39;] = np.append(attributes[&#39;dry volume&#39;], v_dry)
-            attributes[&#39;dry volume organic&#39;] = np.append(
-                attributes[&#39;dry volume organic&#39;], mode[&#39;f_org&#39;] * v_dry)
-            attributes[&#39;kappa times dry volume&#39;] = np.append(
-                attributes[&#39;kappa times dry volume&#39;], v_dry * mode[&#39;kappa&#39;][settings.model])
+            attributes[&#34;n&#34;] = np.append(attributes[&#34;n&#34;], N)
+            attributes[&#34;dry volume&#34;] = np.append(attributes[&#34;dry volume&#34;], v_dry)
+            attributes[&#34;dry volume organic&#34;] = np.append(
+                attributes[&#34;dry volume organic&#34;], mode[&#34;f_org&#34;] * v_dry
+            )
+            attributes[&#34;kappa times dry volume&#34;] = np.append(
+                attributes[&#34;kappa times dry volume&#34;],
+                v_dry * mode[&#34;kappa&#34;][settings.model],
+            )
         for attribute in attributes.values():
             assert attribute.shape[0] == n_sd
 
-        attributes[&#39;n&#39;] = discretise_multiplicities(attributes[&#39;n&#39;])
-
-        dv = settings.mass_of_dry_air / settings.rho0
         np.testing.assert_approx_equal(
-            np.sum(attributes[&#39;n&#39;]) / dv,
-            Sum(tuple(
-                settings.aerosol.aerosol_modes_per_cc[i][&#39;spectrum&#39;]
-                for i in range(len(settings.aerosol.aerosol_modes_per_cc))
-            )).norm_factor,
-            significant=5
+            np.sum(attributes[&#34;n&#34;]) / V,
+            Sum(
+                tuple(
+                    settings.aerosol.aerosol_modes[i][&#34;spectrum&#34;]
+                    for i in range(len(settings.aerosol.aerosol_modes))
+                )
+            ).norm_factor,
+            significant=5,
         )
         r_wet = equilibrate_wet_radii(
-            r_dry=settings.formulae.trivia.radius(volume=attributes[&#39;dry volume&#39;]),
+            r_dry=settings.formulae.trivia.radius(volume=attributes[&#34;dry volume&#34;]),
             environment=env,
-            kappa_times_dry_volume=attributes[&#39;kappa times dry volume&#39;],
-            f_org=attributes[&#39;dry volume organic&#39;] / attributes[&#39;dry volume&#39;]
+            kappa_times_dry_volume=attributes[&#34;kappa times dry volume&#34;],
+            f_org=attributes[&#34;dry volume organic&#34;] / attributes[&#34;dry volume&#34;],
         )
-        attributes[&#39;volume&#39;] = settings.formulae.trivia.volume(radius=r_wet)
+        attributes[&#34;volume&#34;] = settings.formulae.trivia.volume(radius=r_wet)
 
-        if settings.model == &#39;bulk&#39;:
-            del attributes[&#39;dry volume organic&#39;]
+        if settings.model == &#34;Constant&#34;:
+            del attributes[&#34;dry volume organic&#34;]
 
         builder.add_dynamic(AmbientThermodynamics())
         builder.add_dynamic(Condensation())
 
         products = products or (
-            PySDM_products.ParcelDisplacement(name=&#39;z&#39;),
-            PySDM_products.Time(name=&#39;t&#39;),
-            PySDM_products.PeakSupersaturation(unit=&#39;%&#39;, name=&#39;S_max&#39;),
-            PySDM_products.ParticleConcentration(name=&#39;n_c_cm3&#39;, unit=&#39;cm^-3&#39;,
-                radius_range=settings.cloud_radius_range),
+            PySDM_products.ParcelDisplacement(name=&#34;z&#34;),
+            PySDM_products.Time(name=&#34;t&#34;),
+            PySDM_products.PeakSupersaturation(unit=&#34;%&#34;, name=&#34;S_max&#34;),
+            PySDM_products.AmbientRelativeHumidity(unit=&#34;%&#34;, name=&#34;RH&#34;),
+            PySDM_products.ParticleConcentration(
+                name=&#34;n_c_cm3&#34;, unit=&#34;cm^-3&#34;, radius_range=settings.cloud_radius_range
+            ),
             PySDM_products.ParticleSizeSpectrumPerVolume(
-                radius_bins_edges=settings.wet_radius_bins_edges),
+                radius_bins_edges=settings.wet_radius_bins_edges
+            ),
+            PySDM_products.ActivableFraction(),
         )
 
-        self.particulator = builder.build(attributes=attributes, products=products)
+        particulator = builder.build(attributes=attributes, products=products)
+        if settings.BDF:
+            bdf.patch_particulator(particulator)
         self.settings = settings
+        super().__init__(particulator=particulator)
 
     def _save_scalars(self, output):
         for k, v in self.particulator.products.items():
-            if len(v.shape) &gt; 1:
+            if len(v.shape) &gt; 1 or k == &#34;activable fraction&#34;:
                 continue
             value = v.get()
             if isinstance(value, np.ndarray) and value.size == 1:
@@ -227,8 +264,8 @@ class Simulation:
             output[k].append(value)
 
     def _save_spectrum(self, output):
-        value = self.particulator.products[&#39;particle size spectrum per volume&#39;].get()
-        output[&#39;spectrum&#39;] = value
+        value = self.particulator.products[&#34;particle size spectrum per volume&#34;].get()
+        output[&#34;spectrum&#34;] = value
 
     def run(self):
         output = {k: [] for k in self.particulator.products}
@@ -236,8 +273,20 @@ class Simulation:
             self.particulator.run(step - self.particulator.n_steps)
             self._save_scalars(output)
         self._save_spectrum(output)
+        if self.settings.BDF:
+            output[&#34;Activated Fraction&#34;] = self.particulator.products[
+                &#34;activable fraction&#34;
+            ].get(S_max=np.nanmax(output[&#34;RH&#34;]) - 100)
+        else:
+            output[&#34;Activated Fraction&#34;] = self.particulator.products[
+                &#34;activable fraction&#34;
+            ].get(S_max=np.nanmax(output[&#34;S_max&#34;]))
         return output</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="PySDM_examples.utils.basic_simulation.BasicSimulation" href="../utils/basic_simulation.html#PySDM_examples.utils.basic_simulation.BasicSimulation">BasicSimulation</a></li>
+</ul>
 <h3>Methods</h3>
 <dl>
 <dt id="PySDM_examples.Lowe_et_al_2019.simulation.Simulation.run"><code class="name flex">
@@ -255,6 +304,14 @@ class Simulation:
         self.particulator.run(step - self.particulator.n_steps)
         self._save_scalars(output)
     self._save_spectrum(output)
+    if self.settings.BDF:
+        output[&#34;Activated Fraction&#34;] = self.particulator.products[
+            &#34;activable fraction&#34;
+        ].get(S_max=np.nanmax(output[&#34;RH&#34;]) - 100)
+    else:
+        output[&#34;Activated Fraction&#34;] = self.particulator.products[
+            &#34;activable fraction&#34;
+        ].get(S_max=np.nanmax(output[&#34;S_max&#34;]))
     return output</code></pre>
 </details>
 </dd>
