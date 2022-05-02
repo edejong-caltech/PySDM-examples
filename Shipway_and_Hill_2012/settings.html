@@ -45,7 +45,7 @@ class Settings:
         p0: float = 1002 * si.hPa,
         particle_reservoir_depth: float = 0 * si.m,
         kappa: float = 1,
-        rho_times_w_1: float = 2 * si.m / si.s,
+        rho_times_w_1: float = 2 * si.m / si.s * si.kg / si.m**3,
         dt: float = 1 * si.s,
         dz: float = 25 * si.m,
         precip: bool = True
@@ -172,7 +172,7 @@ class Settings:
         p0: float = 1002 * si.hPa,
         particle_reservoir_depth: float = 0 * si.m,
         kappa: float = 1,
-        rho_times_w_1: float = 2 * si.m / si.s,
+        rho_times_w_1: float = 2 * si.m / si.s * si.kg / si.m**3,
         dt: float = 1 * si.s,
         dz: float = 25 * si.m,
         precip: bool = True

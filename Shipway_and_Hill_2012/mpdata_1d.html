@@ -42,7 +42,7 @@ class MPDATA_1D:
         g_factor_of_zZ,
         mpdata_settings,
     ):
-        self.t = 0
+        self.__t = 0
         self.dt = dt
         self.advector_of_t = advector_of_t
 
@@ -82,11 +82,13 @@ class MPDATA_1D:
     def advector(self):
         return self.solver.advector.get_component(0)
 
+    def update_advector_field(self):
+        self.__t += 0.5 * self.dt
+        self.advector[:] = self.advector_of_t(self.__t)
+        self.__t += 0.5 * self.dt
+
     def __call__(self):
-        self.t += 0.5 * self.dt
-        self.advector[:] = self.advector_of_t(self.t)
-        self.solver.advance(1)
-        self.t += 0.5 * self.dt</code></pre>
+        self.solver.advance(1)</code></pre>
 </details>
 </section>
 <section>
@@ -118,7 +120,7 @@ class MPDATA_1D:
         g_factor_of_zZ,
         mpdata_settings,
     ):
-        self.t = 0
+        self.__t = 0
         self.dt = dt
         self.advector_of_t = advector_of_t
 
@@ -158,11 +160,13 @@ class MPDATA_1D:
     def advector(self):
         return self.solver.advector.get_component(0)
 
+    def update_advector_field(self):
+        self.__t += 0.5 * self.dt
+        self.advector[:] = self.advector_of_t(self.__t)
+        self.__t += 0.5 * self.dt
+
     def __call__(self):
-        self.t += 0.5 * self.dt
-        self.advector[:] = self.advector_of_t(self.t)
-        self.solver.advance(1)
-        self.t += 0.5 * self.dt</code></pre>
+        self.solver.advance(1)</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -176,6 +180,24 @@ class MPDATA_1D:
 <pre><code class="python">@property
 def advector(self):
     return self.solver.advector.get_component(0)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="PySDM_examples.Shipway_and_Hill_2012.mpdata_1d.MPDATA_1D.update_advector_field"><code class="name flex">
+<span>def <span class="ident">update_advector_field</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_advector_field(self):
+    self.__t += 0.5 * self.dt
+    self.advector[:] = self.advector_of_t(self.__t)
+    self.__t += 0.5 * self.dt</code></pre>
 </details>
 </dd>
 </dl>
@@ -200,6 +222,7 @@ def advector(self):
 <h4><code><a title="PySDM_examples.Shipway_and_Hill_2012.mpdata_1d.MPDATA_1D" href="#PySDM_examples.Shipway_and_Hill_2012.mpdata_1d.MPDATA_1D">MPDATA_1D</a></code></h4>
 <ul class="">
 <li><code><a title="PySDM_examples.Shipway_and_Hill_2012.mpdata_1d.MPDATA_1D.advector" href="#PySDM_examples.Shipway_and_Hill_2012.mpdata_1d.MPDATA_1D.advector">advector</a></code></li>
+<li><code><a title="PySDM_examples.Shipway_and_Hill_2012.mpdata_1d.MPDATA_1D.update_advector_field" href="#PySDM_examples.Shipway_and_Hill_2012.mpdata_1d.MPDATA_1D.update_advector_field">update_advector_field</a></code></li>
 </ul>
 </li>
 </ul>

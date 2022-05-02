@@ -97,7 +97,12 @@ class Simulation:
                     adaptive=settings.coalescence_adaptive,
                 )
             )
-        displacement = Displacement(enable_sedimentation=settings.precip)
+        displacement = Displacement(
+            enable_sedimentation=settings.precip,
+            precipitation_counting_level_index=int(
+                settings.particle_reservoir_depth / settings.dz
+            ),
+        )
         builder.add_dynamic(displacement)
         attributes = env.init_attributes(
             spatial_discretisation=spatial_sampling.Pseudorandom(),
@@ -168,6 +173,7 @@ class Simulation:
 
         self.save(output, 0)
         for step in range(nt):
+            self.mpdata.update_advector_field()
             if &#34;Displacement&#34; in self.particulator.dynamics:
                 self.particulator.dynamics[&#34;Displacement&#34;].upload_courant_field(
                     (self.mpdata.advector / self.g_factor_vec,)
@@ -248,7 +254,12 @@ class Simulation:
                     adaptive=settings.coalescence_adaptive,
                 )
             )
-        displacement = Displacement(enable_sedimentation=settings.precip)
+        displacement = Displacement(
+            enable_sedimentation=settings.precip,
+            precipitation_counting_level_index=int(
+                settings.particle_reservoir_depth / settings.dz
+            ),
+        )
         builder.add_dynamic(displacement)
         attributes = env.init_attributes(
             spatial_discretisation=spatial_sampling.Pseudorandom(),
@@ -319,6 +330,7 @@ class Simulation:
 
         self.save(output, 0)
         for step in range(nt):
+            self.mpdata.update_advector_field()
             if &#34;Displacement&#34; in self.particulator.dynamics:
                 self.particulator.dynamics[&#34;Displacement&#34;].upload_courant_field(
                     (self.mpdata.advector / self.g_factor_vec,)
@@ -358,6 +370,7 @@ class Simulation:
 
     self.save(output, 0)
     for step in range(nt):
+        self.mpdata.update_advector_field()
         if &#34;Displacement&#34; in self.particulator.dynamics:
             self.particulator.dynamics[&#34;Displacement&#34;].upload_courant_field(
                 (self.mpdata.advector / self.g_factor_vec,)
