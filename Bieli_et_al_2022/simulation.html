@@ -46,10 +46,10 @@ def make_core(settings, coal_eff):
         settings.spectrum
     ).sample(settings.n_sd)
     collision = Collision(
-        settings.kernel,
-        coal_eff,
-        settings.break_eff,
-        settings.fragmentation,
+        collision_kernel=settings.kernel,
+        coalescence_efficiency=coal_eff,
+        breakup_efficiency=settings.break_eff,
+        fragmentation_function=settings.fragmentation,
         adaptive=settings.adaptive,
     )
     builder.add_dynamic(collision)
@@ -88,10 +88,10 @@ def make_core(settings, coal_eff):
         settings.spectrum
     ).sample(settings.n_sd)
     collision = Collision(
-        settings.kernel,
-        coal_eff,
-        settings.break_eff,
-        settings.fragmentation,
+        collision_kernel=settings.kernel,
+        coalescence_efficiency=coal_eff,
+        breakup_efficiency=settings.break_eff,
+        fragmentation_function=settings.fragmentation,
         adaptive=settings.adaptive,
     )
     builder.add_dynamic(collision)
