@@ -54,7 +54,7 @@ class AerosolARG(DryAerosolMixture):
             is_soluble={&#34;(NH4)2SO4&#34;: True, &#34;insoluble&#34;: False},
             ionic_dissociation_phi={&#34;(NH4)2SO4&#34;: 3, &#34;insoluble&#34;: 0},
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;kappa&#34;: self.kappa({&#34;(NH4)2SO4&#34;: 1.0, &#34;insoluble&#34;: 0.0}),
                 &#34;spectrum&#34;: spectra.Lognormal(
@@ -88,7 +88,7 @@ class AerosolWhitby(DryAerosolMixture):
             compounds=(&#34;(NH4)2SO4&#34;,),
             is_soluble={&#34;(NH4)2SO4&#34;: True},
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;kappa&#34;: self.kappa(nuclei),
                 &#34;spectrum&#34;: spectra.Lognormal(
@@ -150,7 +150,7 @@ class AerosolARG(DryAerosolMixture):
             is_soluble={&#34;(NH4)2SO4&#34;: True, &#34;insoluble&#34;: False},
             ionic_dissociation_phi={&#34;(NH4)2SO4&#34;: 3, &#34;insoluble&#34;: 0},
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;kappa&#34;: self.kappa({&#34;(NH4)2SO4&#34;: 1.0, &#34;insoluble&#34;: 0.0}),
                 &#34;spectrum&#34;: spectra.Lognormal(
@@ -197,7 +197,7 @@ class AerosolWhitby(DryAerosolMixture):
             compounds=(&#34;(NH4)2SO4&#34;,),
             is_soluble={&#34;(NH4)2SO4&#34;: True},
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;kappa&#34;: self.kappa(nuclei),
                 &#34;spectrum&#34;: spectra.Lognormal(

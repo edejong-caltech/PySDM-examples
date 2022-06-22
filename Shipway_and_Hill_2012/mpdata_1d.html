@@ -85,6 +85,7 @@ class MPDATA_1D:
     def update_advector_field(self):
         self.__t += 0.5 * self.dt
         self.advector[:] = self.advector_of_t(self.__t)
+        np.testing.assert_array_less(np.abs(self.advector), 1)
         self.__t += 0.5 * self.dt
 
     def __call__(self):
@@ -163,6 +164,7 @@ class MPDATA_1D:
     def update_advector_field(self):
         self.__t += 0.5 * self.dt
         self.advector[:] = self.advector_of_t(self.__t)
+        np.testing.assert_array_less(np.abs(self.advector), 1)
         self.__t += 0.5 * self.dt
 
     def __call__(self):
@@ -197,6 +199,7 @@ def advector(self):
 <pre><code class="python">def update_advector_field(self):
     self.__t += 0.5 * self.dt
     self.advector[:] = self.advector_of_t(self.__t)
+    np.testing.assert_array_less(np.abs(self.advector), 1)
     self.__t += 0.5 * self.dt</code></pre>
 </details>
 </dd>

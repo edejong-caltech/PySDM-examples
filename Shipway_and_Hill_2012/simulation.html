@@ -26,7 +26,9 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import numpy as np
+<pre><code class="python">from collections import namedtuple
+
+import numpy as np
 import PySDM.products as PySDM_products
 from PySDM import Builder
 from PySDM.backends import CPU
@@ -54,6 +56,7 @@ class Simulation:
     def __init__(self, settings, backend=CPU):
         self.nt = settings.nt
         self.z0 = -settings.particle_reservoir_depth
+        self.save_spec_and_attr_times = settings.save_spec_and_attr_times
 
         builder = Builder(
             n_sd=settings.n_sd, backend=backend(formulae=settings.formulae)
@@ -96,6 +99,7 @@ class Simulation:
                 adaptive=settings.condensation_adaptive,
                 rtol_thd=settings.condensation_rtol_thd,
                 rtol_x=settings.condensation_rtol_x,
+                update_thd=settings.condensation_update_thd,
             )
         )
         builder.add_dynamic(EulerianAdvection(self.mpdata))
@@ -145,7 +149,9 @@ class Simulation:
             PySDM_products.AmbientDryAirDensity(name=&#34;rhod&#34;),
             PySDM_products.AmbientDryAirPotentialTemperature(name=&#34;thd&#34;),
             PySDM_products.ParticleSizeSpectrumPerVolume(
-                name=&#34;dry spectrum&#34;, radius_bins_edges=settings.r_bins_edges, dry=True
+                name=&#34;dry spectrum&#34;,
+                radius_bins_edges=settings.r_bins_edges_dry,
+                dry=True,
             ),
             PySDM_products.ParticleSizeSpectrumPerVolume(
                 name=&#34;wet spectrum&#34;, radius_bins_edges=settings.r_bins_edges
@@ -168,39 +174,72 @@ class Simulation:
         ]
         self.particulator = builder.build(attributes=attributes, products=products)
 
-    def save(self, output, step):
+        self.output_attributes = {
+            &#34;cell origin&#34;: [],
+            &#34;position in cell&#34;: [],
+            &#34;radius&#34;: [],
+            &#34;n&#34;: [],
+        }
+        self.output_products = {}
         for k, v in self.particulator.products.items():
             if len(v.shape) == 1:
-                output[k][:, step] = v.get()
+                self.output_products[k] = np.zeros((mesh.grid[-1], self.nt + 1))
+            elif len(v.shape) == 2:
+                number_of_time_sections = len(self.save_spec_and_attr_times)
+                self.output_products[k] = np.zeros(
+                    (mesh.grid[-1], settings.number_of_bins, number_of_time_sections)
+                )
 
-    def run(self, nt=None):
-        nt = self.nt if nt is None else nt
+    def save_scalar(self, step):
+        for k, v in self.particulator.products.items():
+            if len(v.shape) &gt; 1:
+                continue
+            self.output_products[k][:, step] = v.get()
+
+    def save_spectrum(self, index):
+        for k, v in self.particulator.products.items():
+            if len(v.shape) == 2:
+                self.output_products[k][:, :, index] = v.get()
+
+    def save_attributes(self):
+        for k, v in self.output_attributes.items():
+            v.append(self.particulator.attributes[k].to_ndarray())
+
+    def save(self, step):
+        self.save_scalar(step)
+        time = step * self.particulator.dt
+        if time in self.save_spec_and_attr_times:
+            save_index = self.save_spec_and_attr_times.index(time)
+            self.save_spectrum(save_index)
+            self.save_attributes()
+
+    def run(self):
         mesh = self.particulator.mesh
 
-        output = {
-            k: np.zeros((mesh.grid[-1], nt + 1)) for k in self.particulator.products
-        }
-        assert &#34;t&#34; not in output and &#34;z&#34; not in output
-        output[&#34;t&#34;] = np.linspace(
+        assert &#34;t&#34; not in self.output_products and &#34;z&#34; not in self.output_products
+        self.output_products[&#34;t&#34;] = np.linspace(
             0, self.nt * self.particulator.dt, self.nt + 1, endpoint=True
         )
-        output[&#34;z&#34;] = np.linspace(
+        self.output_products[&#34;z&#34;] = np.linspace(
             self.z0 + mesh.dz / 2,
             self.z0 + (mesh.grid[-1] - 1 / 2) * mesh.dz,
             mesh.grid[-1],
             endpoint=True,
         )
 
-        self.save(output, 0)
-        for step in range(nt):
+        self.save(0)
+        for step in range(self.nt):
             self.mpdata.update_advector_field()
             if &#34;Displacement&#34; in self.particulator.dynamics:
                 self.particulator.dynamics[&#34;Displacement&#34;].upload_courant_field(
                     (self.mpdata.advector / self.g_factor_vec,)
                 )
             self.particulator.run(steps=1)
-            self.save(output, step + 1)
-        return output</code></pre>
+            self.save(step + 1)
+
+        Outputs = namedtuple(&#34;Outputs&#34;, &#34;products attributes&#34;)
+        output_results = Outputs(self.output_products, self.output_attributes)
+        return output_results</code></pre>
 </details>
 </section>
 <section>
@@ -226,6 +265,7 @@ class Simulation:
     def __init__(self, settings, backend=CPU):
         self.nt = settings.nt
         self.z0 = -settings.particle_reservoir_depth
+        self.save_spec_and_attr_times = settings.save_spec_and_attr_times
 
         builder = Builder(
             n_sd=settings.n_sd, backend=backend(formulae=settings.formulae)
@@ -268,6 +308,7 @@ class Simulation:
                 adaptive=settings.condensation_adaptive,
                 rtol_thd=settings.condensation_rtol_thd,
                 rtol_x=settings.condensation_rtol_x,
+                update_thd=settings.condensation_update_thd,
             )
         )
         builder.add_dynamic(EulerianAdvection(self.mpdata))
@@ -317,7 +358,9 @@ class Simulation:
             PySDM_products.AmbientDryAirDensity(name=&#34;rhod&#34;),
             PySDM_products.AmbientDryAirPotentialTemperature(name=&#34;thd&#34;),
             PySDM_products.ParticleSizeSpectrumPerVolume(
-                name=&#34;dry spectrum&#34;, radius_bins_edges=settings.r_bins_edges, dry=True
+                name=&#34;dry spectrum&#34;,
+                radius_bins_edges=settings.r_bins_edges_dry,
+                dry=True,
             ),
             PySDM_products.ParticleSizeSpectrumPerVolume(
                 name=&#34;wet spectrum&#34;, radius_bins_edges=settings.r_bins_edges
@@ -340,44 +383,77 @@ class Simulation:
         ]
         self.particulator = builder.build(attributes=attributes, products=products)
 
-    def save(self, output, step):
+        self.output_attributes = {
+            &#34;cell origin&#34;: [],
+            &#34;position in cell&#34;: [],
+            &#34;radius&#34;: [],
+            &#34;n&#34;: [],
+        }
+        self.output_products = {}
         for k, v in self.particulator.products.items():
             if len(v.shape) == 1:
-                output[k][:, step] = v.get()
+                self.output_products[k] = np.zeros((mesh.grid[-1], self.nt + 1))
+            elif len(v.shape) == 2:
+                number_of_time_sections = len(self.save_spec_and_attr_times)
+                self.output_products[k] = np.zeros(
+                    (mesh.grid[-1], settings.number_of_bins, number_of_time_sections)
+                )
 
-    def run(self, nt=None):
-        nt = self.nt if nt is None else nt
+    def save_scalar(self, step):
+        for k, v in self.particulator.products.items():
+            if len(v.shape) &gt; 1:
+                continue
+            self.output_products[k][:, step] = v.get()
+
+    def save_spectrum(self, index):
+        for k, v in self.particulator.products.items():
+            if len(v.shape) == 2:
+                self.output_products[k][:, :, index] = v.get()
+
+    def save_attributes(self):
+        for k, v in self.output_attributes.items():
+            v.append(self.particulator.attributes[k].to_ndarray())
+
+    def save(self, step):
+        self.save_scalar(step)
+        time = step * self.particulator.dt
+        if time in self.save_spec_and_attr_times:
+            save_index = self.save_spec_and_attr_times.index(time)
+            self.save_spectrum(save_index)
+            self.save_attributes()
+
+    def run(self):
         mesh = self.particulator.mesh
 
-        output = {
-            k: np.zeros((mesh.grid[-1], nt + 1)) for k in self.particulator.products
-        }
-        assert &#34;t&#34; not in output and &#34;z&#34; not in output
-        output[&#34;t&#34;] = np.linspace(
+        assert &#34;t&#34; not in self.output_products and &#34;z&#34; not in self.output_products
+        self.output_products[&#34;t&#34;] = np.linspace(
             0, self.nt * self.particulator.dt, self.nt + 1, endpoint=True
         )
-        output[&#34;z&#34;] = np.linspace(
+        self.output_products[&#34;z&#34;] = np.linspace(
             self.z0 + mesh.dz / 2,
             self.z0 + (mesh.grid[-1] - 1 / 2) * mesh.dz,
             mesh.grid[-1],
             endpoint=True,
         )
 
-        self.save(output, 0)
-        for step in range(nt):
+        self.save(0)
+        for step in range(self.nt):
             self.mpdata.update_advector_field()
             if &#34;Displacement&#34; in self.particulator.dynamics:
                 self.particulator.dynamics[&#34;Displacement&#34;].upload_courant_field(
                     (self.mpdata.advector / self.g_factor_vec,)
                 )
             self.particulator.run(steps=1)
-            self.save(output, step + 1)
-        return output</code></pre>
+            self.save(step + 1)
+
+        Outputs = namedtuple(&#34;Outputs&#34;, &#34;products attributes&#34;)
+        output_results = Outputs(self.output_products, self.output_attributes)
+        return output_results</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.run"><code class="name flex">
-<span>def <span class="ident">run</span></span>(<span>self, nt=None)</span>
+<span>def <span class="ident">run</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -385,38 +461,37 @@ class Simulation:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run(self, nt=None):
-    nt = self.nt if nt is None else nt
+<pre><code class="python">def run(self):
     mesh = self.particulator.mesh
 
-    output = {
-        k: np.zeros((mesh.grid[-1], nt + 1)) for k in self.particulator.products
-    }
-    assert &#34;t&#34; not in output and &#34;z&#34; not in output
-    output[&#34;t&#34;] = np.linspace(
+    assert &#34;t&#34; not in self.output_products and &#34;z&#34; not in self.output_products
+    self.output_products[&#34;t&#34;] = np.linspace(
         0, self.nt * self.particulator.dt, self.nt + 1, endpoint=True
     )
-    output[&#34;z&#34;] = np.linspace(
+    self.output_products[&#34;z&#34;] = np.linspace(
         self.z0 + mesh.dz / 2,
         self.z0 + (mesh.grid[-1] - 1 / 2) * mesh.dz,
         mesh.grid[-1],
         endpoint=True,
     )
 
-    self.save(output, 0)
-    for step in range(nt):
+    self.save(0)
+    for step in range(self.nt):
         self.mpdata.update_advector_field()
         if &#34;Displacement&#34; in self.particulator.dynamics:
             self.particulator.dynamics[&#34;Displacement&#34;].upload_courant_field(
                 (self.mpdata.advector / self.g_factor_vec,)
             )
         self.particulator.run(steps=1)
-        self.save(output, step + 1)
-    return output</code></pre>
+        self.save(step + 1)
+
+    Outputs = namedtuple(&#34;Outputs&#34;, &#34;products attributes&#34;)
+    output_results = Outputs(self.output_products, self.output_attributes)
+    return output_results</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save"><code class="name flex">
-<span>def <span class="ident">save</span></span>(<span>self, output, step)</span>
+<span>def <span class="ident">save</span></span>(<span>self, step)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -424,10 +499,58 @@ class Simulation:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def save(self, output, step):
+<pre><code class="python">def save(self, step):
+    self.save_scalar(step)
+    time = step * self.particulator.dt
+    if time in self.save_spec_and_attr_times:
+        save_index = self.save_spec_and_attr_times.index(time)
+        self.save_spectrum(save_index)
+        self.save_attributes()</code></pre>
+</details>
+</dd>
+<dt id="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_attributes"><code class="name flex">
+<span>def <span class="ident">save_attributes</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_attributes(self):
+    for k, v in self.output_attributes.items():
+        v.append(self.particulator.attributes[k].to_ndarray())</code></pre>
+</details>
+</dd>
+<dt id="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_scalar"><code class="name flex">
+<span>def <span class="ident">save_scalar</span></span>(<span>self, step)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_scalar(self, step):
     for k, v in self.particulator.products.items():
-        if len(v.shape) == 1:
-            output[k][:, step] = v.get()</code></pre>
+        if len(v.shape) &gt; 1:
+            continue
+        self.output_products[k][:, step] = v.get()</code></pre>
+</details>
+</dd>
+<dt id="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_spectrum"><code class="name flex">
+<span>def <span class="ident">save_spectrum</span></span>(<span>self, index)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_spectrum(self, index):
+    for k, v in self.particulator.products.items():
+        if len(v.shape) == 2:
+            self.output_products[k][:, :, index] = v.get()</code></pre>
 </details>
 </dd>
 </dl>
@@ -453,6 +576,9 @@ class Simulation:
 <ul class="">
 <li><code><a title="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.run" href="#PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.run">run</a></code></li>
 <li><code><a title="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save" href="#PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save">save</a></code></li>
+<li><code><a title="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_attributes" href="#PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_attributes">save_attributes</a></code></li>
+<li><code><a title="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_scalar" href="#PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_scalar">save_scalar</a></code></li>
+<li><code><a title="PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_spectrum" href="#PySDM_examples.Shipway_and_Hill_2012.simulation.Simulation.save_spectrum">save_spectrum</a></code></li>
 </ul>
 </li>
 </ul>

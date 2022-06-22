@@ -72,7 +72,7 @@ class AerosolMarine(DryAerosolMixture):
                 &#34;NaCl&#34;: Substance.from_formula(&#34;NaCl&#34;).mass * si.gram / si.mole,
             },
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
                 &#34;kappa&#34;: self.kappa(Aitken),
@@ -140,7 +140,7 @@ class AerosolBoreal(DryAerosolMixture):
                 &#34;NH4NO3&#34;: True,
             },
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
                 &#34;kappa&#34;: self.kappa(Aitken),
@@ -202,7 +202,7 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;(NH4)2SO4&#34;: True,
             },
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;f_org&#34;: 1 - self.f_soluble_volume(Ultrafine),
                 &#34;kappa&#34;: self.kappa(Ultrafine),
@@ -289,7 +289,7 @@ class AerosolBoreal(DryAerosolMixture):
                 &#34;NH4NO3&#34;: True,
             },
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
                 &#34;kappa&#34;: self.kappa(Aitken),
@@ -373,7 +373,7 @@ class AerosolMarine(DryAerosolMixture):
                 &#34;NaCl&#34;: Substance.from_formula(&#34;NaCl&#34;).mass * si.gram / si.mole,
             },
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;f_org&#34;: 1 - self.f_soluble_volume(Aitken),
                 &#34;kappa&#34;: self.kappa(Aitken),
@@ -454,7 +454,7 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;(NH4)2SO4&#34;: True,
             },
         )
-        self.aerosol_modes = (
+        self.modes = (
             {
                 &#34;f_org&#34;: 1 - self.f_soluble_volume(Ultrafine),
                 &#34;kappa&#34;: self.kappa(Ultrafine),
