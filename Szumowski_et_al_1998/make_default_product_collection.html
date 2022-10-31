@@ -85,7 +85,7 @@ def make_default_product_collection(settings):
 
     if settings.processes[&#34;fluid advection&#34;]:
         products.append(PySDM_products.MaxCourantNumber())
-        products.append(PySDM_products.CoolingRate())
+        products.append(PySDM_products.CoolingRate(unit=&#34;K/min&#34;))
     if settings.processes[&#34;condensation&#34;]:
         products.append(PySDM_products.CondensationTimestepMin(name=&#34;dt_cond_min&#34;))
         products.append(PySDM_products.CondensationTimestepMax(name=&#34;dt_cond_max&#34;))
@@ -100,8 +100,12 @@ def make_default_product_collection(settings):
     if settings.processes[&#34;coalescence&#34;]:
         products.append(PySDM_products.CollisionTimestepMean(name=&#34;dt_coal_avg&#34;))
         products.append(PySDM_products.CollisionTimestepMin(name=&#34;dt_coal_min&#34;))
-        products.append(PySDM_products.CollisionRatePerGridbox())
-        products.append(PySDM_products.CollisionRateDeficitPerGridbox())
+        products.append(PySDM_products.CollisionRatePerGridbox(name=&#34;cr&#34;))
+        products.append(PySDM_products.CollisionRateDeficitPerGridbox(name=&#34;crd&#34;))
+        products.append(PySDM_products.CoalescenceRatePerGridbox(name=&#34;cor&#34;))
+    if settings.processes[&#34;breakup&#34;]:
+        products.append(PySDM_products.BreakupRatePerGridbox(name=&#34;br&#34;))
+        products.append(PySDM_products.BreakupRateDeficitPerGridbox(name=&#34;brd&#34;))
     if settings.processes[&#34;freezing&#34;]:
         products.append(PySDM_products.IceWaterContent())
         if settings.freezing_singular:
@@ -191,7 +195,7 @@ def make_default_product_collection(settings):
 
     if settings.processes[&#34;fluid advection&#34;]:
         products.append(PySDM_products.MaxCourantNumber())
-        products.append(PySDM_products.CoolingRate())
+        products.append(PySDM_products.CoolingRate(unit=&#34;K/min&#34;))
     if settings.processes[&#34;condensation&#34;]:
         products.append(PySDM_products.CondensationTimestepMin(name=&#34;dt_cond_min&#34;))
         products.append(PySDM_products.CondensationTimestepMax(name=&#34;dt_cond_max&#34;))
@@ -206,8 +210,12 @@ def make_default_product_collection(settings):
     if settings.processes[&#34;coalescence&#34;]:
         products.append(PySDM_products.CollisionTimestepMean(name=&#34;dt_coal_avg&#34;))
         products.append(PySDM_products.CollisionTimestepMin(name=&#34;dt_coal_min&#34;))
-        products.append(PySDM_products.CollisionRatePerGridbox())
-        products.append(PySDM_products.CollisionRateDeficitPerGridbox())
+        products.append(PySDM_products.CollisionRatePerGridbox(name=&#34;cr&#34;))
+        products.append(PySDM_products.CollisionRateDeficitPerGridbox(name=&#34;crd&#34;))
+        products.append(PySDM_products.CoalescenceRatePerGridbox(name=&#34;cor&#34;))
+    if settings.processes[&#34;breakup&#34;]:
+        products.append(PySDM_products.BreakupRatePerGridbox(name=&#34;br&#34;))
+        products.append(PySDM_products.BreakupRateDeficitPerGridbox(name=&#34;brd&#34;))
     if settings.processes[&#34;freezing&#34;]:
         products.append(PySDM_products.IceWaterContent())
         if settings.freezing_singular:

@@ -207,9 +207,15 @@ class CurvedText(mtext.Text):
 <dd>
 <div class="desc"><p>A text object that follows an arbitrary curve.</p>
 <p>Create a <code>.Text</code> instance at <em>x</em>, <em>y</em> with string <em>text</em>.</p>
+<p>The text is aligned relative to the anchor point (<em>x</em>, <em>y</em>) according
+to <code>horizontalalignment</code> (default: 'left') and <code>verticalalignment</code>
+(default: 'bottom'). See also
+:doc:<code>/gallery/text_labels_and_annotations/text_alignment</code>.</p>
+<p>While Text accepts the 'label' keyword argument, by default it is not
+added to the handles of a legend.</p>
 <p>Valid keyword arguments are:</p>
 <h2 id="properties">Properties</h2>
-<p>agg_filter: a filter function, which takes a (m, n, 3) float array and a dpi value, and returns a (m, n, 3) array
+<p>agg_filter: a filter function, which takes a (m, n, 3) float array and a dpi value, and returns a (m, n, 3) array and two offsets from the bottom left corner of the image
 alpha: scalar or None
 animated: bool
 backgroundcolor: color
@@ -227,11 +233,12 @@ fontstyle or style: {'normal', 'italic', 'oblique'}
 fontvariant or variant: {'normal', 'small-caps'}
 fontweight or weight: {a numeric value in range 0-1000, 'ultralight', 'light', 'normal', 'regular', 'book', 'medium', 'roman', 'semibold', 'demibold', 'demi', 'bold', 'heavy', 'extra bold', 'black'}
 gid: str
-horizontalalignment or ha: {'center', 'right', 'left'}
+horizontalalignment or ha: {'left', 'center', 'right'}
 in_layout: bool
 label: object
 linespacing: float (multiple of font size)
 math_fontfamily: str
+mouseover: bool
 multialignment or ma: {'left', 'right', 'center'}
 parse_math: bool
 path_effects: <code>.AbstractPathEffect</code>
@@ -247,7 +254,7 @@ transform: <code>.Transform</code>
 transform_rotates_text: bool
 url: str
 usetex: bool or None
-verticalalignment or va: {'center', 'top', 'bottom', 'baseline', 'center_baseline'}
+verticalalignment or va: {'bottom', 'baseline', 'center', 'center_baseline', 'top'}
 visible: bool
 wrap: bool
 x: float
@@ -442,13 +449,13 @@ angles of self.__Characters.</p></div>
 </details>
 </dd>
 <dt id="PySDM_examples.UIUC_2021.curved_text.CurvedText.set"><code class="name flex">
-<span>def <span class="ident">set</span></span>(<span>self, *, agg_filter=&lt;UNSET&gt;, alpha=&lt;UNSET&gt;, animated=&lt;UNSET&gt;, backgroundcolor=&lt;UNSET&gt;, bbox=&lt;UNSET&gt;, clip_box=&lt;UNSET&gt;, clip_on=&lt;UNSET&gt;, clip_path=&lt;UNSET&gt;, color=&lt;UNSET&gt;, fontfamily=&lt;UNSET&gt;, fontproperties=&lt;UNSET&gt;, fontsize=&lt;UNSET&gt;, fontstretch=&lt;UNSET&gt;, fontstyle=&lt;UNSET&gt;, fontvariant=&lt;UNSET&gt;, fontweight=&lt;UNSET&gt;, gid=&lt;UNSET&gt;, horizontalalignment=&lt;UNSET&gt;, in_layout=&lt;UNSET&gt;, label=&lt;UNSET&gt;, linespacing=&lt;UNSET&gt;, math_fontfamily=&lt;UNSET&gt;, multialignment=&lt;UNSET&gt;, parse_math=&lt;UNSET&gt;, path_effects=&lt;UNSET&gt;, picker=&lt;UNSET&gt;, position=&lt;UNSET&gt;, rasterized=&lt;UNSET&gt;, rotation=&lt;UNSET&gt;, rotation_mode=&lt;UNSET&gt;, sketch_params=&lt;UNSET&gt;, snap=&lt;UNSET&gt;, text=&lt;UNSET&gt;, transform=&lt;UNSET&gt;, transform_rotates_text=&lt;UNSET&gt;, url=&lt;UNSET&gt;, usetex=&lt;UNSET&gt;, verticalalignment=&lt;UNSET&gt;, visible=&lt;UNSET&gt;, wrap=&lt;UNSET&gt;, x=&lt;UNSET&gt;, y=&lt;UNSET&gt;, zorder=&lt;UNSET&gt;)</span>
+<span>def <span class="ident">set</span></span>(<span>self, *, agg_filter=&lt;UNSET&gt;, alpha=&lt;UNSET&gt;, animated=&lt;UNSET&gt;, backgroundcolor=&lt;UNSET&gt;, bbox=&lt;UNSET&gt;, clip_box=&lt;UNSET&gt;, clip_on=&lt;UNSET&gt;, clip_path=&lt;UNSET&gt;, color=&lt;UNSET&gt;, fontfamily=&lt;UNSET&gt;, fontproperties=&lt;UNSET&gt;, fontsize=&lt;UNSET&gt;, fontstretch=&lt;UNSET&gt;, fontstyle=&lt;UNSET&gt;, fontvariant=&lt;UNSET&gt;, fontweight=&lt;UNSET&gt;, gid=&lt;UNSET&gt;, horizontalalignment=&lt;UNSET&gt;, in_layout=&lt;UNSET&gt;, label=&lt;UNSET&gt;, linespacing=&lt;UNSET&gt;, math_fontfamily=&lt;UNSET&gt;, mouseover=&lt;UNSET&gt;, multialignment=&lt;UNSET&gt;, parse_math=&lt;UNSET&gt;, path_effects=&lt;UNSET&gt;, picker=&lt;UNSET&gt;, position=&lt;UNSET&gt;, rasterized=&lt;UNSET&gt;, rotation=&lt;UNSET&gt;, rotation_mode=&lt;UNSET&gt;, sketch_params=&lt;UNSET&gt;, snap=&lt;UNSET&gt;, text=&lt;UNSET&gt;, transform=&lt;UNSET&gt;, transform_rotates_text=&lt;UNSET&gt;, url=&lt;UNSET&gt;, usetex=&lt;UNSET&gt;, verticalalignment=&lt;UNSET&gt;, visible=&lt;UNSET&gt;, wrap=&lt;UNSET&gt;, x=&lt;UNSET&gt;, y=&lt;UNSET&gt;, zorder=&lt;UNSET&gt;)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set multiple properties at once.</p>
 <p>Supported properties are</p>
 <h2 id="properties">Properties</h2>
-<p>agg_filter: a filter function, which takes a (m, n, 3) float array and a dpi value, and returns a (m, n, 3) array
+<p>agg_filter: a filter function, which takes a (m, n, 3) float array and a dpi value, and returns a (m, n, 3) array and two offsets from the bottom left corner of the image
 alpha: scalar or None
 animated: bool
 backgroundcolor: color
@@ -466,11 +473,12 @@ fontstyle or style: {'normal', 'italic', 'oblique'}
 fontvariant or variant: {'normal', 'small-caps'}
 fontweight or weight: {a numeric value in range 0-1000, 'ultralight', 'light', 'normal', 'regular', 'book', 'medium', 'roman', 'semibold', 'demibold', 'demi', 'bold', 'heavy', 'extra bold', 'black'}
 gid: str
-horizontalalignment or ha: {'center', 'right', 'left'}
+horizontalalignment or ha: {'left', 'center', 'right'}
 in_layout: bool
 label: object
 linespacing: float (multiple of font size)
 math_fontfamily: str
+mouseover: bool
 multialignment or ma: {'left', 'right', 'center'}
 parse_math: bool
 path_effects: <code>.AbstractPathEffect</code>
@@ -486,7 +494,7 @@ transform: <code>.Transform</code>
 transform_rotates_text: bool
 url: str
 usetex: bool or None
-verticalalignment or va: {'center', 'top', 'bottom', 'baseline', 'center_baseline'}
+verticalalignment or va: {'bottom', 'baseline', 'center', 'center_baseline', 'top'}
 visible: bool
 wrap: bool
 x: float

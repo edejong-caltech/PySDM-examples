@@ -33,12 +33,11 @@ from PySDM import Formulae
 from PySDM.dynamics import condensation
 from PySDM.initialisation import spectra
 from PySDM.physics import si
-from pystrict import strict
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
+from scipy.misc import derivative
 
 
-@strict
 class Settings:
     def __dir__(self) -&gt; Iterable[str]:
         return (
@@ -50,7 +49,6 @@ class Settings:
             &#34;dt&#34;,
             &#34;dz&#34;,
             &#34;precip&#34;,
-            &#34;breakup&#34;,
             &#34;z_max&#34;,
             &#34;t_max&#34;,
             &#34;cloud_water_radius_range&#34;,
@@ -70,7 +68,6 @@ class Settings:
         dt: float = 1 * si.s,
         dz: float = 25 * si.m,
         precip: bool = True,
-        breakup: bool = False
     ):
         self.formulae = Formulae()
         self.n_sd_per_gridbox = n_sd_per_gridbox
@@ -81,7 +78,6 @@ class Settings:
         self.dt = dt
         self.dz = dz
         self.precip = precip
-        self.breakup = breakup
 
         self.z_max = 3000 * si.metres
         self.t_max = 60 * si.minutes
@@ -130,14 +126,15 @@ class Settings:
             if z_above_reservoir &lt; 0:
                 return 0
             qv = self.qv(z_above_reservoir)
+            dqv_dz = derivative(self.qv, z_above_reservoir)
             T = self.formulae.state_variable_triplet.T(
                 rhod[0], self.thd(z_above_reservoir)
             )
             p = self.formulae.state_variable_triplet.p(rhod[0], T, qv)
             lv = self.formulae.latent_heat.lv(T)
-            return self.formulae.hydrostatics.drho_dz(
-                g, p, T, qv, lv
-            )  # note: drho \approx drhod
+            return self.formulae.hydrostatics.drho_dz(g, p, T, qv, lv) / (
+                1 + qv
+            ) - rhod * dqv_dz / (1 + qv)
 
         z_span = (-self.particle_reservoir_depth, self.z_max)
         z_points = np.linspace(*z_span, 2 * self.nz + 1)
@@ -172,7 +169,9 @@ class Settings:
             endpoint=True,
         )
         self.cloud_water_radius_range = [1 * si.um, 50 * si.um]
+        self.cloud_water_radius_range_igel = [1 * si.um, 25 * si.um]
         self.rain_water_radius_range = [50 * si.um, np.inf * si.um]
+        self.rain_water_radius_range_igel = [25 * si.um, np.inf * si.um]
         self.save_spec_and_attr_times = []
 
     @property
@@ -207,7 +206,7 @@ class Settings:
 <dl>
 <dt id="PySDM_examples.Shipway_and_Hill_2012.settings.Settings"><code class="flex name class">
 <span>class <span class="ident">Settings</span></span>
-<span>(</span><span>*, n_sd_per_gridbox: int, p0: float = 100700.0, kappa: float = 1, rho_times_w_1: float = 2.0, particles_per_volume_STP: int = 49999999.99999999, dt: float = 1.0, dz: float = 25.0, precip: bool = True, breakup: bool = False)</span>
+<span>(</span><span>*, n_sd_per_gridbox: int, p0: float = 100700.0, kappa: float = 1, rho_times_w_1: float = 2.0, particles_per_volume_STP: int = 49999999.99999999, dt: float = 1.0, dz: float = 25.0, precip: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -215,8 +214,7 @@ class Settings:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@strict
-class Settings:
+<pre><code class="python">class Settings:
     def __dir__(self) -&gt; Iterable[str]:
         return (
             &#34;n_sd_per_gridbox&#34;,
@@ -227,7 +225,6 @@ class Settings:
             &#34;dt&#34;,
             &#34;dz&#34;,
             &#34;precip&#34;,
-            &#34;breakup&#34;,
             &#34;z_max&#34;,
             &#34;t_max&#34;,
             &#34;cloud_water_radius_range&#34;,
@@ -247,7 +244,6 @@ class Settings:
         dt: float = 1 * si.s,
         dz: float = 25 * si.m,
         precip: bool = True,
-        breakup: bool = False
     ):
         self.formulae = Formulae()
         self.n_sd_per_gridbox = n_sd_per_gridbox
@@ -258,7 +254,6 @@ class Settings:
         self.dt = dt
         self.dz = dz
         self.precip = precip
-        self.breakup = breakup
 
         self.z_max = 3000 * si.metres
         self.t_max = 60 * si.minutes
@@ -307,14 +302,15 @@ class Settings:
             if z_above_reservoir &lt; 0:
                 return 0
             qv = self.qv(z_above_reservoir)
+            dqv_dz = derivative(self.qv, z_above_reservoir)
             T = self.formulae.state_variable_triplet.T(
                 rhod[0], self.thd(z_above_reservoir)
             )
             p = self.formulae.state_variable_triplet.p(rhod[0], T, qv)
             lv = self.formulae.latent_heat.lv(T)
-            return self.formulae.hydrostatics.drho_dz(
-                g, p, T, qv, lv
-            )  # note: drho \approx drhod
+            return self.formulae.hydrostatics.drho_dz(g, p, T, qv, lv) / (
+                1 + qv
+            ) - rhod * dqv_dz / (1 + qv)
 
         z_span = (-self.particle_reservoir_depth, self.z_max)
         z_points = np.linspace(*z_span, 2 * self.nz + 1)
@@ -349,7 +345,9 @@ class Settings:
             endpoint=True,
         )
         self.cloud_water_radius_range = [1 * si.um, 50 * si.um]
+        self.cloud_water_radius_range_igel = [1 * si.um, 25 * si.um]
         self.rain_water_radius_range = [50 * si.um, np.inf * si.um]
+        self.rain_water_radius_range_igel = [25 * si.um, np.inf * si.um]
         self.save_spec_and_attr_times = []
 
     @property
@@ -372,6 +370,10 @@ class Settings:
         assert nt == int(nt)
         return int(nt)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="PySDM_examples.deJong_Mackay_2022.settings1D.Settings1D" href="../deJong_Mackay_2022/settings1D.html#PySDM_examples.deJong_Mackay_2022.settings1D.Settings1D">Settings1D</a></li>
+</ul>
 <h3>Instance variables</h3>
 <dl>
 <dt id="PySDM_examples.Shipway_and_Hill_2012.settings.Settings.n_sd"><code class="name">var <span class="ident">n_sd</span></code></dt>

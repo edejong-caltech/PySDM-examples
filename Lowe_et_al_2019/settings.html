@@ -85,7 +85,7 @@ class Settings:
 
         self.p0 = 980 * si.mbar
         self.T0 = 280 * si.K
-        pv0 = 0.99 * self.formulae.saturation_vapour_pressure.pvs_Celsius(
+        pv0 = 0.999 * self.formulae.saturation_vapour_pressure.pvs_Celsius(
             self.T0 - const.T0
         )
         self.q0 = const.eps * pv0 / (self.p0 - pv0)
@@ -189,7 +189,7 @@ class Settings:
 
         self.p0 = 980 * si.mbar
         self.T0 = 280 * si.K
-        pv0 = 0.99 * self.formulae.saturation_vapour_pressure.pvs_Celsius(
+        pv0 = 0.999 * self.formulae.saturation_vapour_pressure.pvs_Celsius(
             self.T0 - const.T0
         )
         self.q0 = const.eps * pv0 / (self.p0 - pv0)

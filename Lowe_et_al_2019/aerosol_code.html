@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>PySDM_examples.Lowe_et_al_2019.aerosol API documentation</title>
+<title>PySDM_examples.Lowe_et_al_2019.aerosol_code API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>PySDM_examples.Lowe_et_al_2019.aerosol</code></h1>
+<h1 class="title">Module <code>PySDM_examples.Lowe_et_al_2019.aerosol_code</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -35,7 +35,18 @@ from pystrict import strict
 
 @strict
 class AerosolMarine(DryAerosolMixture):
-    def __init__(self, Forg: float = 0.2, Acc_N2: float = 134):
+    # cd MAV
+    # MODAL_PARS.CONC         = [223  137];   %[number/cm3]
+    # MODAL_PARS.GSD          = [1.68 1.68];
+    # MODAL_PARS.GEOMEAN_DIAM = [0.0390  0.139];     %[um]
+    # DENSITY(4:5)            = 0.852;  %Set organic density. Palmitic acid 256.4 [gmol-1]
+    # MASS_FRAC               = [0 0.8 0 0.2 0 0 0 0.0;...
+    #                            0 0.0 0 0.2 0 0 0 0.8];
+    # NAT                     = 2;
+    # NMODE                   = [1 1];
+    # DENSITY                 = [1.841, 1.78, 1.77, 0.852, 1.5, 2., 2.65, 2.165]; %[gcm-3]
+
+    def __init__(self, Forg: float = 0.2, Acc_N2: float = 137):
         Aitken = {
             &#34;palmitic&#34;: Forg,
             &#34;(NH4)2SO4&#34;: (1 - Forg),
@@ -60,8 +71,8 @@ class AerosolMarine(DryAerosolMixture):
             },
             densities={
                 &#34;palmitic&#34;: 0.852 * si.g / si.cm**3,
-                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
-                &#34;NaCl&#34;: 2.16 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.78 * si.g / si.cm**3,
+                &#34;NaCl&#34;: 2.165 * si.g / si.cm**3,
             },
             compounds=(&#34;palmitic&#34;, &#34;(NH4)2SO4&#34;, &#34;NaCl&#34;),
             molar_masses={
@@ -78,7 +89,7 @@ class AerosolMarine(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Aitken),
                 &#34;nu_org&#34;: self.nu_org(Aitken),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=226 / si.cm**3, m_mode=19.6 * si.nm, s_geom=1.71
+                    norm_factor=223 / si.cm**3, m_mode=19.6 * si.nm, s_geom=1.68
                 ),
             },
             {
@@ -86,7 +97,7 @@ class AerosolMarine(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Accumulation),
                 &#34;nu_org&#34;: self.nu_org(Accumulation),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=Acc_N2 / si.cm**3, m_mode=69.5 * si.nm, s_geom=1.7
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=69.5 * si.nm, s_geom=1.68
                 ),
             },
         )
@@ -96,19 +107,42 @@ class AerosolMarine(DryAerosolMixture):
 
 @strict
 class AerosolBoreal(DryAerosolMixture):
+
+    #     cd HYY
+    #     MODAL_PARS.CONC         = [1110   540];
+    #     MODAL_PARS.GSD          = [1.75   1.62];
+    #     MODAL_PARS.GEOMEAN_DIAM = [0.0453 0.1644];
+    #     DENSITY(4:5)            = [1.2 1.4];                  %Set organic density
+    #     DENSITY(1)              = 1.72;
+    #     INORG_MASS_RATIO        = 0.1515/0.1559;  %ammonium sulfate:ammonium nitrate  mass
+    #     FORG                    = 0.60;
+    #     MASS_FRAC               = [(1-FORG)/(1+INORG_MASS_RATIO) 0 ...
+    #                               INORG_MASS_RATIO*(1-FORG)/(1+INORG_MASS_RATIO) FORG...
+    #                               0 0 0 0;...
+    #                               (1-FORG)/(1+INORG_MASS_RATIO) 0 ...
+    #                               INORG_MASS_RATIO*(1-FORG)/(1+INORG_MASS_RATIO) 0 ...
+    #                               FORG 0 0 0];
+    #     NAT                     = 2;
+    #     NMODE                   = [1 1];
+
+    # DENSITY                     = [1.841, 1.78, 1.77, 1.5, 1.5, 2., 2.65, 2.165]; %[gcm-3]
+    # DENSITY                     = [1.72, 1.78, 1.77, 1.2, 1.4, 2., 2.65, 2.165]; %[gcm-3]
+
     def __init__(self, Forg: float = 0.668, Acc_N2: float = 540):
-        # note: SOA1 or SOA2 unclear from the paper
+        # TODO #899: SOA1 or SOA2 unclear from the paper
+        # TODO #899: CAN&#39;T FIND WHERE NH4NO3 PROPERTIES ARE DEFINED IN ICPM
+        INORG_MASS_RATIO = 0.1515 / 0.1559
         Aitken = {
             &#34;SOA1&#34;: Forg,
             &#34;SOA2&#34;: 0,
-            &#34;(NH4)2SO4&#34;: (1 - Forg) / 2,
-            &#34;NH4NO3&#34;: (1 - Forg) / 2,
+            &#34;(NH4)2SO4&#34;: INORG_MASS_RATIO * (1 - Forg) / (1 + INORG_MASS_RATIO),
+            &#34;NH4NO3&#34;: (1 - Forg) / (1 + INORG_MASS_RATIO),
         }
         Accumulation = {
             &#34;SOA1&#34;: 0,
             &#34;SOA2&#34;: Forg,
-            &#34;(NH4)2SO4&#34;: (1 - Forg) / 2,
-            &#34;NH4NO3&#34;: (1 - Forg) / 2,
+            &#34;(NH4)2SO4&#34;: INORG_MASS_RATIO * (1 - Forg) / (1 + INORG_MASS_RATIO),
+            &#34;NH4NO3&#34;: (1 - Forg) / (1 + INORG_MASS_RATIO),
         }
 
         super().__init__(
@@ -123,12 +157,12 @@ class AerosolBoreal(DryAerosolMixture):
                 * si.gram
                 / si.mole,
                 &#34;NH4NO3&#34;: Substance.from_formula(&#34;NH4NO3&#34;).mass * si.gram / si.mole,
-                &#34;SOA1&#34;: 190 * si.g / si.mole,
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
             },
             densities={
-                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
-                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA1&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.4 * si.g / si.cm**3,
                 &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
                 &#34;NH4NO3&#34;: 1.72 * si.g / si.cm**3,
             },
@@ -146,7 +180,7 @@ class AerosolBoreal(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Aitken),
                 &#34;nu_org&#34;: self.nu_org(Aitken),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=1110 / si.cm**3, m_mode=22.7 * si.nm, s_geom=1.75
+                    norm_factor=1110 / si.cm**3, m_mode=22.65 * si.nm, s_geom=1.75
                 ),
             },
             {
@@ -166,7 +200,21 @@ class AerosolBoreal(DryAerosolMixture):
 
 @strict
 class AerosolNascent(DryAerosolMixture):
+
+    # cd NUM
+    # MODAL_PARS.CONC         = [2000  30];
+    # MODAL_PARS.GSD          = [1.71  1.703];
+    # MODAL_PARS.GEOMEAN_DIAM = [0.023 0.200];
+    # DENSITY(4:5)            = [1.2 1.24];                  %Set organic density
+    # MASS_FRAC               = [0 0 0.48 0.52 0 0 0 0;...
+    #                            0 0 0.70 0.0 0.3 0 0 0];
+    # NAT                     = 2;
+    # NMODE                   = [1 1];
+
+    # DENSITY                 = [1.841, 1.78, 1.77, 1.2, 1.24, 2., 2.65, 2.165]; %[gcm-3]
+
     def __init__(self, Acc_Forg: float = 0.3, Acc_N2: float = 30):
+        # TODO #899: CAN&#39;T FIND WHEN PHI IS MULTIPLIED FOR KÖHLER B IN ICPM CODE
         Ultrafine = {
             &#34;SOA1&#34;: 0.52,
             &#34;SOA2&#34;: 0,
@@ -184,15 +232,15 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;(NH4)2SO4&#34;: 3,
             },
             molar_masses={
-                &#34;SOA1&#34;: 190 * si.g / si.mole,
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
                 &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
                 * si.gram
                 / si.mole,
             },
             densities={
-                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
-                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA1&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.24 * si.g / si.cm**3,
                 &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
             },
             compounds=(&#34;SOA1&#34;, &#34;SOA2&#34;, &#34;(NH4)2SO4&#34;),
@@ -216,7 +264,7 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Accumulation),
                 &#34;nu_org&#34;: self.nu_org(Accumulation),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=Acc_N2 / si.cm**3, m_mode=100 * si.nm, s_geom=1.70
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=100 * si.nm, s_geom=1.703
                 ),
             },
         )
@@ -233,7 +281,7 @@ class AerosolNascent(DryAerosolMixture):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal"><code class="flex name class">
+<dt id="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolBoreal"><code class="flex name class">
 <span>class <span class="ident">AerosolBoreal</span></span>
 <span>(</span><span>Forg: float = 0.668, Acc_N2: float = 540)</span>
 </code></dt>
@@ -245,19 +293,42 @@ class AerosolNascent(DryAerosolMixture):
 </summary>
 <pre><code class="python">@strict
 class AerosolBoreal(DryAerosolMixture):
+
+    #     cd HYY
+    #     MODAL_PARS.CONC         = [1110   540];
+    #     MODAL_PARS.GSD          = [1.75   1.62];
+    #     MODAL_PARS.GEOMEAN_DIAM = [0.0453 0.1644];
+    #     DENSITY(4:5)            = [1.2 1.4];                  %Set organic density
+    #     DENSITY(1)              = 1.72;
+    #     INORG_MASS_RATIO        = 0.1515/0.1559;  %ammonium sulfate:ammonium nitrate  mass
+    #     FORG                    = 0.60;
+    #     MASS_FRAC               = [(1-FORG)/(1+INORG_MASS_RATIO) 0 ...
+    #                               INORG_MASS_RATIO*(1-FORG)/(1+INORG_MASS_RATIO) FORG...
+    #                               0 0 0 0;...
+    #                               (1-FORG)/(1+INORG_MASS_RATIO) 0 ...
+    #                               INORG_MASS_RATIO*(1-FORG)/(1+INORG_MASS_RATIO) 0 ...
+    #                               FORG 0 0 0];
+    #     NAT                     = 2;
+    #     NMODE                   = [1 1];
+
+    # DENSITY                     = [1.841, 1.78, 1.77, 1.5, 1.5, 2., 2.65, 2.165]; %[gcm-3]
+    # DENSITY                     = [1.72, 1.78, 1.77, 1.2, 1.4, 2., 2.65, 2.165]; %[gcm-3]
+
     def __init__(self, Forg: float = 0.668, Acc_N2: float = 540):
-        # note: SOA1 or SOA2 unclear from the paper
+        # TODO #899: SOA1 or SOA2 unclear from the paper
+        # TODO #899: CAN&#39;T FIND WHERE NH4NO3 PROPERTIES ARE DEFINED IN ICPM
+        INORG_MASS_RATIO = 0.1515 / 0.1559
         Aitken = {
             &#34;SOA1&#34;: Forg,
             &#34;SOA2&#34;: 0,
-            &#34;(NH4)2SO4&#34;: (1 - Forg) / 2,
-            &#34;NH4NO3&#34;: (1 - Forg) / 2,
+            &#34;(NH4)2SO4&#34;: INORG_MASS_RATIO * (1 - Forg) / (1 + INORG_MASS_RATIO),
+            &#34;NH4NO3&#34;: (1 - Forg) / (1 + INORG_MASS_RATIO),
         }
         Accumulation = {
             &#34;SOA1&#34;: 0,
             &#34;SOA2&#34;: Forg,
-            &#34;(NH4)2SO4&#34;: (1 - Forg) / 2,
-            &#34;NH4NO3&#34;: (1 - Forg) / 2,
+            &#34;(NH4)2SO4&#34;: INORG_MASS_RATIO * (1 - Forg) / (1 + INORG_MASS_RATIO),
+            &#34;NH4NO3&#34;: (1 - Forg) / (1 + INORG_MASS_RATIO),
         }
 
         super().__init__(
@@ -272,12 +343,12 @@ class AerosolBoreal(DryAerosolMixture):
                 * si.gram
                 / si.mole,
                 &#34;NH4NO3&#34;: Substance.from_formula(&#34;NH4NO3&#34;).mass * si.gram / si.mole,
-                &#34;SOA1&#34;: 190 * si.g / si.mole,
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
             },
             densities={
-                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
-                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA1&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.4 * si.g / si.cm**3,
                 &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
                 &#34;NH4NO3&#34;: 1.72 * si.g / si.cm**3,
             },
@@ -295,7 +366,7 @@ class AerosolBoreal(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Aitken),
                 &#34;nu_org&#34;: self.nu_org(Aitken),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=1110 / si.cm**3, m_mode=22.7 * si.nm, s_geom=1.75
+                    norm_factor=1110 / si.cm**3, m_mode=22.65 * si.nm, s_geom=1.75
                 ),
             },
             {
@@ -318,15 +389,15 @@ class AerosolBoreal(DryAerosolMixture):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.color"><code class="name">var <span class="ident">color</span></code></dt>
+<dt id="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolBoreal.color"><code class="name">var <span class="ident">color</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine"><code class="flex name class">
+<dt id="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolMarine"><code class="flex name class">
 <span>class <span class="ident">AerosolMarine</span></span>
-<span>(</span><span>Forg: float = 0.2, Acc_N2: float = 134)</span>
+<span>(</span><span>Forg: float = 0.2, Acc_N2: float = 137)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -336,7 +407,18 @@ class AerosolBoreal(DryAerosolMixture):
 </summary>
 <pre><code class="python">@strict
 class AerosolMarine(DryAerosolMixture):
-    def __init__(self, Forg: float = 0.2, Acc_N2: float = 134):
+    # cd MAV
+    # MODAL_PARS.CONC         = [223  137];   %[number/cm3]
+    # MODAL_PARS.GSD          = [1.68 1.68];
+    # MODAL_PARS.GEOMEAN_DIAM = [0.0390  0.139];     %[um]
+    # DENSITY(4:5)            = 0.852;  %Set organic density. Palmitic acid 256.4 [gmol-1]
+    # MASS_FRAC               = [0 0.8 0 0.2 0 0 0 0.0;...
+    #                            0 0.0 0 0.2 0 0 0 0.8];
+    # NAT                     = 2;
+    # NMODE                   = [1 1];
+    # DENSITY                 = [1.841, 1.78, 1.77, 0.852, 1.5, 2., 2.65, 2.165]; %[gcm-3]
+
+    def __init__(self, Forg: float = 0.2, Acc_N2: float = 137):
         Aitken = {
             &#34;palmitic&#34;: Forg,
             &#34;(NH4)2SO4&#34;: (1 - Forg),
@@ -361,8 +443,8 @@ class AerosolMarine(DryAerosolMixture):
             },
             densities={
                 &#34;palmitic&#34;: 0.852 * si.g / si.cm**3,
-                &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
-                &#34;NaCl&#34;: 2.16 * si.g / si.cm**3,
+                &#34;(NH4)2SO4&#34;: 1.78 * si.g / si.cm**3,
+                &#34;NaCl&#34;: 2.165 * si.g / si.cm**3,
             },
             compounds=(&#34;palmitic&#34;, &#34;(NH4)2SO4&#34;, &#34;NaCl&#34;),
             molar_masses={
@@ -379,7 +461,7 @@ class AerosolMarine(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Aitken),
                 &#34;nu_org&#34;: self.nu_org(Aitken),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=226 / si.cm**3, m_mode=19.6 * si.nm, s_geom=1.71
+                    norm_factor=223 / si.cm**3, m_mode=19.6 * si.nm, s_geom=1.68
                 ),
             },
             {
@@ -387,7 +469,7 @@ class AerosolMarine(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Accumulation),
                 &#34;nu_org&#34;: self.nu_org(Accumulation),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=Acc_N2 / si.cm**3, m_mode=69.5 * si.nm, s_geom=1.7
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=69.5 * si.nm, s_geom=1.68
                 ),
             },
         )
@@ -400,13 +482,13 @@ class AerosolMarine(DryAerosolMixture):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.color"><code class="name">var <span class="ident">color</span></code></dt>
+<dt id="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolMarine.color"><code class="name">var <span class="ident">color</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent"><code class="flex name class">
+<dt id="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolNascent"><code class="flex name class">
 <span>class <span class="ident">AerosolNascent</span></span>
 <span>(</span><span>Acc_Forg: float = 0.3, Acc_N2: float = 30)</span>
 </code></dt>
@@ -418,7 +500,21 @@ class AerosolMarine(DryAerosolMixture):
 </summary>
 <pre><code class="python">@strict
 class AerosolNascent(DryAerosolMixture):
+
+    # cd NUM
+    # MODAL_PARS.CONC         = [2000  30];
+    # MODAL_PARS.GSD          = [1.71  1.703];
+    # MODAL_PARS.GEOMEAN_DIAM = [0.023 0.200];
+    # DENSITY(4:5)            = [1.2 1.24];                  %Set organic density
+    # MASS_FRAC               = [0 0 0.48 0.52 0 0 0 0;...
+    #                            0 0 0.70 0.0 0.3 0 0 0];
+    # NAT                     = 2;
+    # NMODE                   = [1 1];
+
+    # DENSITY                 = [1.841, 1.78, 1.77, 1.2, 1.24, 2., 2.65, 2.165]; %[gcm-3]
+
     def __init__(self, Acc_Forg: float = 0.3, Acc_N2: float = 30):
+        # TODO #899: CAN&#39;T FIND WHEN PHI IS MULTIPLIED FOR KÖHLER B IN ICPM CODE
         Ultrafine = {
             &#34;SOA1&#34;: 0.52,
             &#34;SOA2&#34;: 0,
@@ -436,15 +532,15 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;(NH4)2SO4&#34;: 3,
             },
             molar_masses={
-                &#34;SOA1&#34;: 190 * si.g / si.mole,
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
                 &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
                 * si.gram
                 / si.mole,
             },
             densities={
-                &#34;SOA1&#34;: 1.24 * si.g / si.cm**3,
-                &#34;SOA2&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA1&#34;: 1.2 * si.g / si.cm**3,
+                &#34;SOA2&#34;: 1.24 * si.g / si.cm**3,
                 &#34;(NH4)2SO4&#34;: 1.77 * si.g / si.cm**3,
             },
             compounds=(&#34;SOA1&#34;, &#34;SOA2&#34;, &#34;(NH4)2SO4&#34;),
@@ -468,7 +564,7 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;kappa&#34;: self.kappa(Accumulation),
                 &#34;nu_org&#34;: self.nu_org(Accumulation),
                 &#34;spectrum&#34;: spectra.Lognormal(
-                    norm_factor=Acc_N2 / si.cm**3, m_mode=100 * si.nm, s_geom=1.70
+                    norm_factor=Acc_N2 / si.cm**3, m_mode=100 * si.nm, s_geom=1.703
                 ),
             },
         )
@@ -481,7 +577,7 @@ class AerosolNascent(DryAerosolMixture):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.color"><code class="name">var <span class="ident">color</span></code></dt>
+<dt id="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolNascent.color"><code class="name">var <span class="ident">color</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -504,21 +600,21 @@ class AerosolNascent(DryAerosolMixture):
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal">AerosolBoreal</a></code></h4>
+<h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolBoreal" href="#PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolBoreal">AerosolBoreal</a></code></h4>
 <ul class="">
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolBoreal.color">color</a></code></li>
+<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolBoreal.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolBoreal.color">color</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine">AerosolMarine</a></code></h4>
+<h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolMarine" href="#PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolMarine">AerosolMarine</a></code></h4>
 <ul class="">
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolMarine.color">color</a></code></li>
+<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolMarine.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolMarine.color">color</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent">AerosolNascent</a></code></h4>
+<h4><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolNascent" href="#PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolNascent">AerosolNascent</a></code></h4>
 <ul class="">
-<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol.AerosolNascent.color">color</a></code></li>
+<li><code><a title="PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolNascent.color" href="#PySDM_examples.Lowe_et_al_2019.aerosol_code.AerosolNascent.color">color</a></code></li>
 </ul>
 </li>
 </ul>

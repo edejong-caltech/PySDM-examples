@@ -62,7 +62,7 @@ class GUISettings:
             description=&#34;$\\rho_d w_{max}$&#34;,
             value=settings.rhod_w_max,
             min=0.1,
-            max=2,
+            max=4,
             step=0.1,
         )
         self.ui_kappa = FloatSlider(
@@ -159,15 +159,21 @@ class GUISettings:
                 max=5,
             ),
         ]
+
+        formulae_init_params = inspect.signature(Formulae.__init__).parameters.items()
+        defaults = {k: v.default for k, v in formulae_init_params}
+        defaults[&#34;freezing_temperature_spectrum&#34;] = &#34;Niemand_et_al_2012&#34;
+        defaults[&#34;heterogeneous_ice_nucleation_rate&#34;] = &#34;ABIFM&#34;
         self.ui_formulae_options = [
             Dropdown(
                 description=k,
                 options=formulae._choices(getattr(physics, k)).keys(),
-                value=v.default,
+                value=defaults[k],
             )
-            for k, v in inspect.signature(Formulae.__init__).parameters.items()
+            for k, v in formulae_init_params
             if k not in (&#34;self&#34;, &#34;fastmath&#34;, &#34;seed&#34;, &#34;constants&#34;)
         ]
+
         self.ui_formulae_options.append(
             Checkbox(
                 value=inspect.signature(Formulae.__init__)
@@ -214,6 +220,10 @@ class GUISettings:
         self.coalescence_dt_coal_range = settings.coalescence_dt_coal_range
         self.coalescence_optimized_random = settings.coalescence_optimized_random
         self.coalescence_substeps = settings.coalescence_substeps
+        self.freezing_inp_frac = settings.freezing_inp_frac
+        self.coalescence_efficiency = settings.coalescence_efficiency
+        self.breakup_efficiency = settings.breakup_efficiency
+        self.breakup_fragmentation = settings.breakup_fragmentation
 
         for attr in (&#34;rhod_of_zZ&#34;, &#34;versions&#34;, &#34;n_spin_up&#34;):
             setattr(self, attr, getattr(settings, attr))
@@ -251,7 +261,8 @@ class GUISettings:
     @property
     def formulae(self) -&gt; Formulae:
         return Formulae(
-            **{widget.description: widget.value for widget in self.ui_formulae_options}
+            **{widget.description: widget.value for widget in self.ui_formulae_options},
+            constants={&#34;NIEMAND_A&#34;: 0, &#34;NIEMAND_B&#34;: 0, &#34;ABIFM_M&#34;: 0, &#34;ABIFM_C&#34;: 0}
         )
 
     @property
@@ -479,7 +490,7 @@ def set_visibility(widget, visible):
             description=&#34;$\\rho_d w_{max}$&#34;,
             value=settings.rhod_w_max,
             min=0.1,
-            max=2,
+            max=4,
             step=0.1,
         )
         self.ui_kappa = FloatSlider(
@@ -576,15 +587,21 @@ def set_visibility(widget, visible):
                 max=5,
             ),
         ]
+
+        formulae_init_params = inspect.signature(Formulae.__init__).parameters.items()
+        defaults = {k: v.default for k, v in formulae_init_params}
+        defaults[&#34;freezing_temperature_spectrum&#34;] = &#34;Niemand_et_al_2012&#34;
+        defaults[&#34;heterogeneous_ice_nucleation_rate&#34;] = &#34;ABIFM&#34;
         self.ui_formulae_options = [
             Dropdown(
                 description=k,
                 options=formulae._choices(getattr(physics, k)).keys(),
-                value=v.default,
+                value=defaults[k],
             )
-            for k, v in inspect.signature(Formulae.__init__).parameters.items()
+            for k, v in formulae_init_params
             if k not in (&#34;self&#34;, &#34;fastmath&#34;, &#34;seed&#34;, &#34;constants&#34;)
         ]
+
         self.ui_formulae_options.append(
             Checkbox(
                 value=inspect.signature(Formulae.__init__)
@@ -631,6 +648,10 @@ def set_visibility(widget, visible):
         self.coalescence_dt_coal_range = settings.coalescence_dt_coal_range
         self.coalescence_optimized_random = settings.coalescence_optimized_random
         self.coalescence_substeps = settings.coalescence_substeps
+        self.freezing_inp_frac = settings.freezing_inp_frac
+        self.coalescence_efficiency = settings.coalescence_efficiency
+        self.breakup_efficiency = settings.breakup_efficiency
+        self.breakup_fragmentation = settings.breakup_fragmentation
 
         for attr in (&#34;rhod_of_zZ&#34;, &#34;versions&#34;, &#34;n_spin_up&#34;):
             setattr(self, attr, getattr(settings, attr))
@@ -668,7 +689,8 @@ def set_visibility(widget, visible):
     @property
     def formulae(self) -&gt; Formulae:
         return Formulae(
-            **{widget.description: widget.value for widget in self.ui_formulae_options}
+            **{widget.description: widget.value for widget in self.ui_formulae_options},
+            constants={&#34;NIEMAND_A&#34;: 0, &#34;NIEMAND_B&#34;: 0, &#34;ABIFM_M&#34;: 0, &#34;ABIFM_C&#34;: 0}
         )
 
     @property
@@ -953,7 +975,8 @@ def dt(self):
 <pre><code class="python">@property
 def formulae(self) -&gt; Formulae:
     return Formulae(
-        **{widget.description: widget.value for widget in self.ui_formulae_options}
+        **{widget.description: widget.value for widget in self.ui_formulae_options},
+        constants={&#34;NIEMAND_A&#34;: 0, &#34;NIEMAND_B&#34;: 0, &#34;ABIFM_M&#34;: 0, &#34;ABIFM_C&#34;: 0}
     )</code></pre>
 </details>
 </dd>

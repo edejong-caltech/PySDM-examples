@@ -117,6 +117,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Blues&#34;,
                 levels=np.linspace(0, 90, 11),
+                extend=&#34;both&#34;,
             )
         if subplot == &#34;b&#34;:
             ax = axes[0, 1]
@@ -138,6 +139,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Blues&#34;,
                 levels=np.linspace(0, 90, 11),
+                extend=&#34;both&#34;,
             )
         if subplot == &#34;c&#34;:
             ax = axes[1, 0]
@@ -159,6 +161,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Greens&#34;,
                 levels=np.linspace(0, 75, 11),
+                extend=&#34;both&#34;,
             )
         if subplot == &#34;d&#34;:
             ax = axes[1, 1]
@@ -180,6 +183,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Greens&#34;,
                 levels=np.linspace(0, 75, 11),
+                extend=&#34;both&#34;,
             )
 
         ax.set_title(subplot, weight=&#34;bold&#34;, loc=&#34;left&#34;)
@@ -196,9 +200,15 @@ def plot_contours(
     pyplot.rcParams.update({&#34;font.size&#34;: 15})
     if save:
         if actfrac:
-            show_plot(&#34;fig_3_act_frac.pdf&#34;)
+            pyplot.savefig(
+                &#34;fig_3_Scrit.png&#34;, dpi=200, facecolor=&#34;w&#34;, bbox_inches=&#34;tight&#34;
+            )
+            show_plot(&#34;fig_3_Scrit.pdf&#34;)
         else:
-            show_plot(&#34;fig_3.pdf&#34;)</code></pre>
+            pyplot.savefig(
+                &#34;fig_3_rcrit.png&#34;, dpi=200, facecolor=&#34;w&#34;, bbox_inches=&#34;tight&#34;
+            )
+            show_plot(&#34;fig_3_rcrit.pdf&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -262,6 +272,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Blues&#34;,
                 levels=np.linspace(0, 90, 11),
+                extend=&#34;both&#34;,
             )
         if subplot == &#34;b&#34;:
             ax = axes[0, 1]
@@ -283,6 +294,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Blues&#34;,
                 levels=np.linspace(0, 90, 11),
+                extend=&#34;both&#34;,
             )
         if subplot == &#34;c&#34;:
             ax = axes[1, 0]
@@ -304,6 +316,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Greens&#34;,
                 levels=np.linspace(0, 75, 11),
+                extend=&#34;both&#34;,
             )
         if subplot == &#34;d&#34;:
             ax = axes[1, 1]
@@ -325,6 +338,7 @@ def plot_contours(
                 dCDNC,
                 cmap=&#34;Greens&#34;,
                 levels=np.linspace(0, 75, 11),
+                extend=&#34;both&#34;,
             )
 
         ax.set_title(subplot, weight=&#34;bold&#34;, loc=&#34;left&#34;)
@@ -341,9 +355,15 @@ def plot_contours(
     pyplot.rcParams.update({&#34;font.size&#34;: 15})
     if save:
         if actfrac:
-            show_plot(&#34;fig_3_act_frac.pdf&#34;)
+            pyplot.savefig(
+                &#34;fig_3_Scrit.png&#34;, dpi=200, facecolor=&#34;w&#34;, bbox_inches=&#34;tight&#34;
+            )
+            show_plot(&#34;fig_3_Scrit.pdf&#34;)
         else:
-            show_plot(&#34;fig_3.pdf&#34;)</code></pre>
+            pyplot.savefig(
+                &#34;fig_3_rcrit.png&#34;, dpi=200, facecolor=&#34;w&#34;, bbox_inches=&#34;tight&#34;
+            )
+            show_plot(&#34;fig_3_rcrit.pdf&#34;)</code></pre>
 </details>
 </dd>
 <dt id="PySDM_examples.Lowe_et_al_2019.plot_helper.plot_profiles"><code class="name flex">

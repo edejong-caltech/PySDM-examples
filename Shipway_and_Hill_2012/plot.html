@@ -32,7 +32,9 @@ from matplotlib import pyplot
 from PySDM.physics.constants import convert_to, si
 
 
-def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
+def plot(
+    var, qlabel, fname, output, vmin=None, vmax=None, cmin=None, cmax=None, line=None
+):
     line = line or {15: &#34;:&#34;, 20: &#34;--&#34;, 25: &#34;-&#34;, 30: &#34;-.&#34;}
     dt = output[&#34;t&#34;][1] - output[&#34;t&#34;][0]
     dz = output[&#34;z&#34;][1] - output[&#34;z&#34;][0]
@@ -43,7 +45,136 @@ def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
     fig = pyplot.figure(constrained_layout=True)
     gs = fig.add_gridspec(25, 5)
     ax1 = fig.add_subplot(gs[:-1, 0:4])
-    mesh = ax1.pcolormesh(tgrid, zgrid, output[var], cmap=&#34;twilight&#34;)
+    if cmin is not None and cmax is not None:
+        mesh = ax1.pcolormesh(
+            tgrid, zgrid, output[var], cmap=&#34;BuPu&#34;, vmin=cmin, vmax=cmax
+        )
+    else:
+        mesh = ax1.pcolormesh(tgrid, zgrid, output[var], cmap=&#34;BuPu&#34;)
+
+    ax1.set_xlabel(&#34;time [s]&#34;)
+    ax1.set_ylabel(&#34;z [km]&#34;)
+    ax1.set_ylim(0, None)
+
+    cbar = fig.colorbar(mesh, fraction=0.05, location=&#34;top&#34;)
+    cbar.set_label(qlabel)
+
+    ax2 = fig.add_subplot(gs[:-1, 4:], sharey=ax1)
+    ax2.set_xlabel(qlabel)
+    # ax2.set_yticks([], minor=False)
+
+    last_t = 0
+    for i, t in enumerate(output[&#34;t&#34;]):
+        x, z = output[var][:, i], output[&#34;z&#34;].copy()
+        convert_to(z, si.km)
+        params = {&#34;color&#34;: &#34;black&#34;}
+        for line_t, line_s in line.items():
+            if last_t &lt; line_t * si.min &lt;= t:
+                params[&#34;ls&#34;] = line_s
+                ax2.plot(x, z, **params)
+                if vmin is not None and vmax is not None:
+                    ax1.axvline(t, ymin=vmin, ymax=vmax, **params)
+                else:
+                    ax1.axvline(t, **params)
+        last_t = t
+
+    show_plot(filename=fname, inline_format=&#34;png&#34;)
+
+
+def plot_plusminus(
+    plus_vars,
+    minus_vars,
+    qlabel,
+    fname,
+    output,
+    vmin=None,
+    vmax=None,
+    line=None,
+    cmin=0.0,
+    cmax=None,
+):
+    line = line or {15: &#34;:&#34;, 20: &#34;--&#34;, 25: &#34;-&#34;, 30: &#34;-.&#34;}
+    dt = output[&#34;t&#34;][1] - output[&#34;t&#34;][0]
+    dz = output[&#34;z&#34;][1] - output[&#34;z&#34;][0]
+    tgrid = np.concatenate(((output[&#34;t&#34;][0] - dt / 2,), output[&#34;t&#34;] + dt / 2))
+    zgrid = np.concatenate(((output[&#34;z&#34;][0] - dz / 2,), output[&#34;z&#34;] + dz / 2))
+    convert_to(zgrid, si.km)
+
+    fig = pyplot.figure(constrained_layout=True)
+    gs = fig.add_gridspec(25, 5)
+    ax1 = fig.add_subplot(gs[:-1, 0:4])
+    plot_var = 0.0 * output[plus_vars[0]]
+    for plus_var in plus_vars:
+        plot_var += output[plus_var]
+    for minus_var in minus_vars:
+        plot_var -= output[minus_var]
+
+    mesh = ax1.pcolormesh(tgrid, zgrid, plot_var, cmap=&#34;BuPu&#34;, vmin=cmin, vmax=cmax)
+
+    ax1.set_xlabel(&#34;time [s]&#34;)
+    ax1.set_ylabel(&#34;z [km]&#34;)
+    ax1.set_ylim(0, None)
+
+    cbar = fig.colorbar(mesh, fraction=0.05, location=&#34;top&#34;)
+    cbar.set_label(qlabel)
+
+    ax2 = fig.add_subplot(gs[:-1, 4:], sharey=ax1)
+    ax2.set_xlabel(qlabel)
+    # ax2.set_yticks([], minor=False)
+
+    last_t = 0
+    for i, t in enumerate(output[&#34;t&#34;]):
+        x, z = plot_var[:, i], output[&#34;z&#34;].copy()
+        convert_to(z, si.km)
+        params = {&#34;color&#34;: &#34;black&#34;}
+        for line_t, line_s in line.items():
+            if last_t &lt; line_t * si.min &lt;= t:
+                params[&#34;ls&#34;] = line_s
+                ax2.plot(x, z, **params)
+                if vmin is not None and vmax is not None:
+                    ax1.axvline(t, ymin=vmin, ymax=vmax, **params)
+                else:
+                    ax1.axvline(t, **params)
+        last_t = t
+
+    show_plot(filename=fname, inline_format=&#34;png&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="PySDM_examples.Shipway_and_Hill_2012.plot.plot"><code class="name flex">
+<span>def <span class="ident">plot</span></span>(<span>var, qlabel, fname, output, vmin=None, vmax=None, cmin=None, cmax=None, line=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot(
+    var, qlabel, fname, output, vmin=None, vmax=None, cmin=None, cmax=None, line=None
+):
+    line = line or {15: &#34;:&#34;, 20: &#34;--&#34;, 25: &#34;-&#34;, 30: &#34;-.&#34;}
+    dt = output[&#34;t&#34;][1] - output[&#34;t&#34;][0]
+    dz = output[&#34;z&#34;][1] - output[&#34;z&#34;][0]
+    tgrid = np.concatenate(((output[&#34;t&#34;][0] - dt / 2,), output[&#34;t&#34;] + dt / 2))
+    zgrid = np.concatenate(((output[&#34;z&#34;][0] - dz / 2,), output[&#34;z&#34;] + dz / 2))
+    convert_to(zgrid, si.km)
+
+    fig = pyplot.figure(constrained_layout=True)
+    gs = fig.add_gridspec(25, 5)
+    ax1 = fig.add_subplot(gs[:-1, 0:4])
+    if cmin is not None and cmax is not None:
+        mesh = ax1.pcolormesh(
+            tgrid, zgrid, output[var], cmap=&#34;BuPu&#34;, vmin=cmin, vmax=cmax
+        )
+    else:
+        mesh = ax1.pcolormesh(tgrid, zgrid, output[var], cmap=&#34;BuPu&#34;)
 
     ax1.set_xlabel(&#34;time [s]&#34;)
     ax1.set_ylabel(&#34;z [km]&#34;)
@@ -73,16 +204,9 @@ def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
 
     show_plot(filename=fname, inline_format=&#34;png&#34;)</code></pre>
 </details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="PySDM_examples.Shipway_and_Hill_2012.plot.plot"><code class="name flex">
-<span>def <span class="ident">plot</span></span>(<span>var, qlabel, fname, output, vmin=None, vmax=None, line=None)</span>
+</dd>
+<dt id="PySDM_examples.Shipway_and_Hill_2012.plot.plot_plusminus"><code class="name flex">
+<span>def <span class="ident">plot_plusminus</span></span>(<span>plus_vars, minus_vars, qlabel, fname, output, vmin=None, vmax=None, line=None, cmin=0.0, cmax=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -90,7 +214,18 @@ def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
+<pre><code class="python">def plot_plusminus(
+    plus_vars,
+    minus_vars,
+    qlabel,
+    fname,
+    output,
+    vmin=None,
+    vmax=None,
+    line=None,
+    cmin=0.0,
+    cmax=None,
+):
     line = line or {15: &#34;:&#34;, 20: &#34;--&#34;, 25: &#34;-&#34;, 30: &#34;-.&#34;}
     dt = output[&#34;t&#34;][1] - output[&#34;t&#34;][0]
     dz = output[&#34;z&#34;][1] - output[&#34;z&#34;][0]
@@ -101,7 +236,13 @@ def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
     fig = pyplot.figure(constrained_layout=True)
     gs = fig.add_gridspec(25, 5)
     ax1 = fig.add_subplot(gs[:-1, 0:4])
-    mesh = ax1.pcolormesh(tgrid, zgrid, output[var], cmap=&#34;twilight&#34;)
+    plot_var = 0.0 * output[plus_vars[0]]
+    for plus_var in plus_vars:
+        plot_var += output[plus_var]
+    for minus_var in minus_vars:
+        plot_var -= output[minus_var]
+
+    mesh = ax1.pcolormesh(tgrid, zgrid, plot_var, cmap=&#34;BuPu&#34;, vmin=cmin, vmax=cmax)
 
     ax1.set_xlabel(&#34;time [s]&#34;)
     ax1.set_ylabel(&#34;z [km]&#34;)
@@ -116,7 +257,7 @@ def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
 
     last_t = 0
     for i, t in enumerate(output[&#34;t&#34;]):
-        x, z = output[var][:, i], output[&#34;z&#34;].copy()
+        x, z = plot_var[:, i], output[&#34;z&#34;].copy()
         convert_to(z, si.km)
         params = {&#34;color&#34;: &#34;black&#34;}
         for line_t, line_s in line.items():
@@ -151,6 +292,7 @@ def plot(var, qlabel, fname, output, vmin=None, vmax=None, line=None):
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="PySDM_examples.Shipway_and_Hill_2012.plot.plot" href="#PySDM_examples.Shipway_and_Hill_2012.plot.plot">plot</a></code></li>
+<li><code><a title="PySDM_examples.Shipway_and_Hill_2012.plot.plot_plusminus" href="#PySDM_examples.Shipway_and_Hill_2012.plot.plot_plusminus">plot_plusminus</a></code></li>
 </ul>
 </li>
 </ul>
