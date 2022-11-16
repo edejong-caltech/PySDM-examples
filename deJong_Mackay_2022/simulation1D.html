@@ -34,6 +34,10 @@ from PySDM_examples.Shipway_and_Hill_2012.simulation import Simulation as Simula
 
 
 class Simulation1D(SimulationSH):
+    def __init__(self, settings):
+        super().__init__(settings)
+        self.output_steps = settings.output_steps
+
     @staticmethod
     def add_collision_dynamic(builder, settings, products):
         if settings.breakup:
@@ -58,7 +62,19 @@ class Simulation1D(SimulationSH):
                 )
             )
         else:
-            SimulationSH.add_collision_dynamic(builder, settings, products)</code></pre>
+            SimulationSH.add_collision_dynamic(builder, settings, products)
+
+    def save(self, step):
+        if step in self.output_steps:
+            super().save(step)
+
+    def run(self):
+        result = super().run()
+        for key, val in result.products.items():
+            if len(val.shape) == 2:
+                result.products[key] = val[:, self.output_steps]
+        result.products[&#34;t&#34;] = result.products[&#34;t&#34;][self.output_steps]
+        return result</code></pre>
 </details>
 </section>
 <section>
@@ -72,7 +88,7 @@ class Simulation1D(SimulationSH):
 <dl>
 <dt id="PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D"><code class="flex name class">
 <span>class <span class="ident">Simulation1D</span></span>
-<span>(</span><span>settings, backend=PySDM.backends.numba.Numba)</span>
+<span>(</span><span>settings)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -81,6 +97,10 @@ class Simulation1D(SimulationSH):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Simulation1D(SimulationSH):
+    def __init__(self, settings):
+        super().__init__(settings)
+        self.output_steps = settings.output_steps
+
     @staticmethod
     def add_collision_dynamic(builder, settings, products):
         if settings.breakup:
@@ -105,7 +125,19 @@ class Simulation1D(SimulationSH):
                 )
             )
         else:
-            SimulationSH.add_collision_dynamic(builder, settings, products)</code></pre>
+            SimulationSH.add_collision_dynamic(builder, settings, products)
+
+    def save(self, step):
+        if step in self.output_steps:
+            super().save(step)
+
+    def run(self):
+        result = super().run()
+        for key, val in result.products.items():
+            if len(val.shape) == 2:
+                result.products[key] = val[:, self.output_steps]
+        result.products[&#34;t&#34;] = result.products[&#34;t&#34;][self.output_steps]
+        return result</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -150,6 +182,41 @@ def add_collision_dynamic(builder, settings, products):
 </details>
 </dd>
 </dl>
+<h3>Methods</h3>
+<dl>
+<dt id="PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self):
+    result = super().run()
+    for key, val in result.products.items():
+        if len(val.shape) == 2:
+            result.products[key] = val[:, self.output_steps]
+    result.products[&#34;t&#34;] = result.products[&#34;t&#34;][self.output_steps]
+    return result</code></pre>
+</details>
+</dd>
+<dt id="PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.save"><code class="name flex">
+<span>def <span class="ident">save</span></span>(<span>self, step)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save(self, step):
+    if step in self.output_steps:
+        super().save(step)</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 </dl>
 </section>
@@ -171,6 +238,8 @@ def add_collision_dynamic(builder, settings, products):
 <h4><code><a title="PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D" href="#PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D">Simulation1D</a></code></h4>
 <ul class="">
 <li><code><a title="PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.add_collision_dynamic" href="#PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.add_collision_dynamic">add_collision_dynamic</a></code></li>
+<li><code><a title="PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.run" href="#PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.run">run</a></code></li>
+<li><code><a title="PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.save" href="#PySDM_examples.deJong_Mackay_2022.simulation1D.Simulation1D.save">save</a></code></li>
 </ul>
 </li>
 </ul>

@@ -39,8 +39,8 @@ from pystrict import strict
 
 @strict
 class Settings0D:
-    def __init__(self):
-        self.formulae = Formulae()
+    def __init__(self, seed: int = None):
+        self.formulae = Formulae(**({} if seed is None else {&#34;seed&#34;: seed}))
         self.n_sd = 2**10
         self.n_part = 100 / si.cm**3
         self.X0 = self.formulae.trivia.volume(radius=30.531 * si.micrometres)
@@ -80,6 +80,7 @@ class Settings0D:
 <dl>
 <dt id="PySDM_examples.deJong_Mackay_2022.settings_0D.Settings0D"><code class="flex name class">
 <span>class <span class="ident">Settings0D</span></span>
+<span>(</span><span>seed: int = None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -89,8 +90,8 @@ class Settings0D:
 </summary>
 <pre><code class="python">@strict
 class Settings0D:
-    def __init__(self):
-        self.formulae = Formulae()
+    def __init__(self, seed: int = None):
+        self.formulae = Formulae(**({} if seed is None else {&#34;seed&#34;: seed}))
         self.n_sd = 2**10
         self.n_part = 100 / si.cm**3
         self.X0 = self.formulae.trivia.volume(radius=30.531 * si.micrometres)
