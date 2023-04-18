@@ -87,7 +87,13 @@ def make_temperature_plot(data):
 
 
 def make_freezing_spec_plot(
-    data, formulae, volume, droplet_volume, total_particle_number, surf_spec
+    data,
+    formulae,
+    volume,
+    droplet_volume,
+    total_particle_number,
+    surf_spec,
+    cooling_rate_K_min=None,
 ):
     pyplot.xlabel(&#34;temperature [K]&#34;)
     plotted = {singular: False for singular in (True, False)}
@@ -101,9 +107,7 @@ def make_freezing_spec_plot(
             np.asarray(datum[&#34;qi&#34;]) / qi_unit,
             marker=&#34;.&#34;,
             linewidth=0.333,
-            label=f&#34;Monte-Carlo: {labels[v[&#39;singular&#39;]]}&#34;
-            if not plotted[v[&#34;singular&#34;]]
-            else &#34;&#34;,
+            label=f&#34;{labels[v[&#39;singular&#39;]]}&#34; if not plotted[v[&#34;singular&#34;]] else &#34;&#34;,
             color=color,
         )
         plotted[v[&#34;singular&#34;]] = True
@@ -147,7 +151,10 @@ def make_freezing_spec_plot(
                 color=color,
                 axes=prim,
             )
-    prim.set_title(f&#34;$σ_g$=exp({np.log(surf_spec.s_geom):.3g})&#34;)
+    title = f&#34;$σ_g$=exp({np.log(surf_spec.s_geom):.3g})&#34;
+    if cooling_rate_K_min is not None:
+        title += f&#34;, cooling rate: {cooling_rate_K_min} K/min&#34;
+    prim.set_title(title)
     # prim.set_ylabel(&#39;ice water content [$g/m^3$]&#39;)
     prim.set_yticks([])
     prim.set_xlim(T[0], T[-1])
@@ -159,26 +166,40 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
     N = 256
     T_space = np.linspace(*T_range, N)
     A_space = np.linspace(*A_range, N)
-    grid = np.meshgrid(T_space, A_space)
-    sampled_pdf = Shima_T_fz(*grid) * A_spec.pdf(grid[1])
+    grid = np.meshgrid(A_space, T_space)
+    sampled_pdf = Shima_T_fz(grid[1], grid[0]) * A_spec.pdf(grid[0])
 
     fig = pyplot.figure(
-        figsize=(7, 6),
+        figsize=(4.5, 6),
     )
     ax = fig.add_subplot(111)
-    ax.set_xlabel(&#34;freezing temperature [K]&#34;)
-    ax.set_ylabel(&#34;insoluble surface [$μm^2$]&#34;)
+    ax.set_ylabel(&#34;freezing temperature [K]&#34;)
+    ax.set_yticks(np.linspace(*T_range, num=5, endpoint=True))
+    ax.set_xlabel(&#34;insoluble surface [μm$^2$]&#34;)
+
+    data = sampled_pdf * si.um**2
+    data[data == 0] = np.nan
     cnt = ax.contourf(
-        grid[0],
-        grid[1] / si.um**2,
-        sampled_pdf * si.um**2,
+        grid[0] / si.um**2,
+        grid[1],
+        data,
         norm=matplotlib.colors.LogNorm(),
         cmap=&#34;Blues&#34;,
         levels=np.logspace(-3, 0, 7),
     )
-    cbar = pyplot.colorbar(cnt)
-    cbar.set_label(&#34;pdf [$K^{-1} μm^{-2}$]&#34;)
+    cbar = pyplot.colorbar(cnt, ticks=[0.001, 0.01, 0.1, 1.0], orientation=&#34;horizontal&#34;)
+    cbar.set_label(&#34;pdf [K$^{-1}$ μm$^{-2}$]&#34;)
     ax.set_title(f&#34;$σ_g$=exp({np.log(A_spec.s_geom):.3g})&#34;)
+
+    ax_histx = ax.inset_axes([0, 1.05, 1, 0.25], sharex=ax)
+    ax_histy = ax.inset_axes([1.05, 0, 0.25, 1], sharey=ax)
+    ax_histx.tick_params(axis=&#34;x&#34;, labelbottom=False, bottom=False)
+    ax_histx.tick_params(axis=&#34;y&#34;, labelleft=False, left=False)
+    ax_histy.tick_params(axis=&#34;y&#34;, labelleft=False, left=False)
+    ax_histy.tick_params(axis=&#34;x&#34;, labelbottom=False, bottom=False)
+    ax_histx.plot(A_space / si.um**2, np.sum(sampled_pdf, axis=0), color=&#34;teal&#34;)
+    ax_histy.plot(np.sum(sampled_pdf, axis=1), T_space, color=&#34;black&#34;)
+
     pyplot.grid()</code></pre>
 </details>
 </section>
@@ -190,7 +211,7 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="PySDM_examples.UIUC_2021.plots.make_freezing_spec_plot"><code class="name flex">
-<span>def <span class="ident">make_freezing_spec_plot</span></span>(<span>data, formulae, volume, droplet_volume, total_particle_number, surf_spec)</span>
+<span>def <span class="ident">make_freezing_spec_plot</span></span>(<span>data, formulae, volume, droplet_volume, total_particle_number, surf_spec, cooling_rate_K_min=None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -199,7 +220,13 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def make_freezing_spec_plot(
-    data, formulae, volume, droplet_volume, total_particle_number, surf_spec
+    data,
+    formulae,
+    volume,
+    droplet_volume,
+    total_particle_number,
+    surf_spec,
+    cooling_rate_K_min=None,
 ):
     pyplot.xlabel(&#34;temperature [K]&#34;)
     plotted = {singular: False for singular in (True, False)}
@@ -213,9 +240,7 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
             np.asarray(datum[&#34;qi&#34;]) / qi_unit,
             marker=&#34;.&#34;,
             linewidth=0.333,
-            label=f&#34;Monte-Carlo: {labels[v[&#39;singular&#39;]]}&#34;
-            if not plotted[v[&#34;singular&#34;]]
-            else &#34;&#34;,
+            label=f&#34;{labels[v[&#39;singular&#39;]]}&#34; if not plotted[v[&#34;singular&#34;]] else &#34;&#34;,
             color=color,
         )
         plotted[v[&#34;singular&#34;]] = True
@@ -259,7 +284,10 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
                 color=color,
                 axes=prim,
             )
-    prim.set_title(f&#34;$σ_g$=exp({np.log(surf_spec.s_geom):.3g})&#34;)
+    title = f&#34;$σ_g$=exp({np.log(surf_spec.s_geom):.3g})&#34;
+    if cooling_rate_K_min is not None:
+        title += f&#34;, cooling rate: {cooling_rate_K_min} K/min&#34;
+    prim.set_title(title)
     # prim.set_ylabel(&#39;ice water content [$g/m^3$]&#39;)
     prim.set_yticks([])
     prim.set_xlim(T[0], T[-1])
@@ -280,26 +308,40 @@ def make_pdf_plot(A_spec, Shima_T_fz, A_range, T_range):
     N = 256
     T_space = np.linspace(*T_range, N)
     A_space = np.linspace(*A_range, N)
-    grid = np.meshgrid(T_space, A_space)
-    sampled_pdf = Shima_T_fz(*grid) * A_spec.pdf(grid[1])
+    grid = np.meshgrid(A_space, T_space)
+    sampled_pdf = Shima_T_fz(grid[1], grid[0]) * A_spec.pdf(grid[0])
 
     fig = pyplot.figure(
-        figsize=(7, 6),
+        figsize=(4.5, 6),
     )
     ax = fig.add_subplot(111)
-    ax.set_xlabel(&#34;freezing temperature [K]&#34;)
-    ax.set_ylabel(&#34;insoluble surface [$μm^2$]&#34;)
+    ax.set_ylabel(&#34;freezing temperature [K]&#34;)
+    ax.set_yticks(np.linspace(*T_range, num=5, endpoint=True))
+    ax.set_xlabel(&#34;insoluble surface [μm$^2$]&#34;)
+
+    data = sampled_pdf * si.um**2
+    data[data == 0] = np.nan
     cnt = ax.contourf(
-        grid[0],
-        grid[1] / si.um**2,
-        sampled_pdf * si.um**2,
+        grid[0] / si.um**2,
+        grid[1],
+        data,
         norm=matplotlib.colors.LogNorm(),
         cmap=&#34;Blues&#34;,
         levels=np.logspace(-3, 0, 7),
     )
-    cbar = pyplot.colorbar(cnt)
-    cbar.set_label(&#34;pdf [$K^{-1} μm^{-2}$]&#34;)
+    cbar = pyplot.colorbar(cnt, ticks=[0.001, 0.01, 0.1, 1.0], orientation=&#34;horizontal&#34;)
+    cbar.set_label(&#34;pdf [K$^{-1}$ μm$^{-2}$]&#34;)
     ax.set_title(f&#34;$σ_g$=exp({np.log(A_spec.s_geom):.3g})&#34;)
+
+    ax_histx = ax.inset_axes([0, 1.05, 1, 0.25], sharex=ax)
+    ax_histy = ax.inset_axes([1.05, 0, 0.25, 1], sharey=ax)
+    ax_histx.tick_params(axis=&#34;x&#34;, labelbottom=False, bottom=False)
+    ax_histx.tick_params(axis=&#34;y&#34;, labelleft=False, left=False)
+    ax_histy.tick_params(axis=&#34;y&#34;, labelleft=False, left=False)
+    ax_histy.tick_params(axis=&#34;x&#34;, labelbottom=False, bottom=False)
+    ax_histx.plot(A_space / si.um**2, np.sum(sampled_pdf, axis=0), color=&#34;teal&#34;)
+    ax_histy.plot(np.sum(sampled_pdf, axis=1), T_space, color=&#34;black&#34;)
+
     pyplot.grid()</code></pre>
 </details>
 </dd>

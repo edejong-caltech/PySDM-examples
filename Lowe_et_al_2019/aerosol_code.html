@@ -107,7 +107,6 @@ class AerosolMarine(DryAerosolMixture):
 
 @strict
 class AerosolBoreal(DryAerosolMixture):
-
     #     cd HYY
     #     MODAL_PARS.CONC         = [1110   540];
     #     MODAL_PARS.GSD          = [1.75   1.62];
@@ -129,8 +128,8 @@ class AerosolBoreal(DryAerosolMixture):
     # DENSITY                     = [1.72, 1.78, 1.77, 1.2, 1.4, 2., 2.65, 2.165]; %[gcm-3]
 
     def __init__(self, Forg: float = 0.668, Acc_N2: float = 540):
-        # TODO #899: SOA1 or SOA2 unclear from the paper
-        # TODO #899: CAN&#39;T FIND WHERE NH4NO3 PROPERTIES ARE DEFINED IN ICPM
+        # TODO #604: SOA1 or SOA2 unclear from the paper
+        # TODO #604: CAN&#39;T FIND WHERE NH4NO3 PROPERTIES ARE DEFINED IN ICPM
         INORG_MASS_RATIO = 0.1515 / 0.1559
         Aitken = {
             &#34;SOA1&#34;: Forg,
@@ -157,8 +156,8 @@ class AerosolBoreal(DryAerosolMixture):
                 * si.gram
                 / si.mole,
                 &#34;NH4NO3&#34;: Substance.from_formula(&#34;NH4NO3&#34;).mass * si.gram / si.mole,
-                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #604: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #604: 368.4 OR 200?
             },
             densities={
                 &#34;SOA1&#34;: 1.2 * si.g / si.cm**3,
@@ -200,7 +199,6 @@ class AerosolBoreal(DryAerosolMixture):
 
 @strict
 class AerosolNascent(DryAerosolMixture):
-
     # cd NUM
     # MODAL_PARS.CONC         = [2000  30];
     # MODAL_PARS.GSD          = [1.71  1.703];
@@ -214,7 +212,7 @@ class AerosolNascent(DryAerosolMixture):
     # DENSITY                 = [1.841, 1.78, 1.77, 1.2, 1.24, 2., 2.65, 2.165]; %[gcm-3]
 
     def __init__(self, Acc_Forg: float = 0.3, Acc_N2: float = 30):
-        # TODO #899: CAN&#39;T FIND WHEN PHI IS MULTIPLIED FOR KÖHLER B IN ICPM CODE
+        # TODO #604: CAN&#39;T FIND WHEN PHI IS MULTIPLIED FOR KÖHLER B IN ICPM CODE
         Ultrafine = {
             &#34;SOA1&#34;: 0.52,
             &#34;SOA2&#34;: 0,
@@ -232,8 +230,8 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;(NH4)2SO4&#34;: 3,
             },
             molar_masses={
-                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #604: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #604: 368.4 OR 200?
                 &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
                 * si.gram
                 / si.mole,
@@ -293,7 +291,6 @@ class AerosolNascent(DryAerosolMixture):
 </summary>
 <pre><code class="python">@strict
 class AerosolBoreal(DryAerosolMixture):
-
     #     cd HYY
     #     MODAL_PARS.CONC         = [1110   540];
     #     MODAL_PARS.GSD          = [1.75   1.62];
@@ -315,8 +312,8 @@ class AerosolBoreal(DryAerosolMixture):
     # DENSITY                     = [1.72, 1.78, 1.77, 1.2, 1.4, 2., 2.65, 2.165]; %[gcm-3]
 
     def __init__(self, Forg: float = 0.668, Acc_N2: float = 540):
-        # TODO #899: SOA1 or SOA2 unclear from the paper
-        # TODO #899: CAN&#39;T FIND WHERE NH4NO3 PROPERTIES ARE DEFINED IN ICPM
+        # TODO #604: SOA1 or SOA2 unclear from the paper
+        # TODO #604: CAN&#39;T FIND WHERE NH4NO3 PROPERTIES ARE DEFINED IN ICPM
         INORG_MASS_RATIO = 0.1515 / 0.1559
         Aitken = {
             &#34;SOA1&#34;: Forg,
@@ -343,8 +340,8 @@ class AerosolBoreal(DryAerosolMixture):
                 * si.gram
                 / si.mole,
                 &#34;NH4NO3&#34;: Substance.from_formula(&#34;NH4NO3&#34;).mass * si.gram / si.mole,
-                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #604: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #604: 368.4 OR 200?
             },
             densities={
                 &#34;SOA1&#34;: 1.2 * si.g / si.cm**3,
@@ -500,7 +497,6 @@ class AerosolMarine(DryAerosolMixture):
 </summary>
 <pre><code class="python">@strict
 class AerosolNascent(DryAerosolMixture):
-
     # cd NUM
     # MODAL_PARS.CONC         = [2000  30];
     # MODAL_PARS.GSD          = [1.71  1.703];
@@ -514,7 +510,7 @@ class AerosolNascent(DryAerosolMixture):
     # DENSITY                 = [1.841, 1.78, 1.77, 1.2, 1.24, 2., 2.65, 2.165]; %[gcm-3]
 
     def __init__(self, Acc_Forg: float = 0.3, Acc_N2: float = 30):
-        # TODO #899: CAN&#39;T FIND WHEN PHI IS MULTIPLIED FOR KÖHLER B IN ICPM CODE
+        # TODO #604: CAN&#39;T FIND WHEN PHI IS MULTIPLIED FOR KÖHLER B IN ICPM CODE
         Ultrafine = {
             &#34;SOA1&#34;: 0.52,
             &#34;SOA2&#34;: 0,
@@ -532,8 +528,8 @@ class AerosolNascent(DryAerosolMixture):
                 &#34;(NH4)2SO4&#34;: 3,
             },
             molar_masses={
-                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #899: 190 OR 200?
-                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #899: 368.4 OR 200?
+                &#34;SOA1&#34;: 190 * si.g / si.mole,  # TODO #604: 190 OR 200?
+                &#34;SOA2&#34;: 368.4 * si.g / si.mole,  # TODO #604: 368.4 OR 200?
                 &#34;(NH4)2SO4&#34;: Substance.from_formula(&#34;(NH4)2SO4&#34;).mass
                 * si.gram
                 / si.mole,

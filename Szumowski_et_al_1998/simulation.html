@@ -160,7 +160,12 @@ class Simulation:
             and not self.settings.processes[&#34;coalescence&#34;]
         )
         if self.settings.processes[&#34;freezing&#34;]:
-            builder.add_dynamic(Freezing(singular=self.settings.freezing_singular))
+            builder.add_dynamic(
+                Freezing(
+                    singular=self.settings.freezing_singular,
+                    thaw=self.settings.freezing_thaw,
+                )
+            )
 
         attributes = environment.init_attributes(
             spatial_discretisation=spatial_sampling.Pseudorandom(),
@@ -385,7 +390,12 @@ class Simulation:
             and not self.settings.processes[&#34;coalescence&#34;]
         )
         if self.settings.processes[&#34;freezing&#34;]:
-            builder.add_dynamic(Freezing(singular=self.settings.freezing_singular))
+            builder.add_dynamic(
+                Freezing(
+                    singular=self.settings.freezing_singular,
+                    thaw=self.settings.freezing_thaw,
+                )
+            )
 
         attributes = environment.init_attributes(
             spatial_discretisation=spatial_sampling.Pseudorandom(),
@@ -604,7 +614,12 @@ def products(self):
         and not self.settings.processes[&#34;coalescence&#34;]
     )
     if self.settings.processes[&#34;freezing&#34;]:
-        builder.add_dynamic(Freezing(singular=self.settings.freezing_singular))
+        builder.add_dynamic(
+            Freezing(
+                singular=self.settings.freezing_singular,
+                thaw=self.settings.freezing_thaw,
+            )
+        )
 
     attributes = environment.init_attributes(
         spatial_discretisation=spatial_sampling.Pseudorandom(),

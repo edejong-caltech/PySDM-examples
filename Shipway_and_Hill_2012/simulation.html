@@ -147,6 +147,9 @@ class Simulation:
                 name=&#34;nc&#34;, radius_range=settings.cloud_water_radius_range
             ),
             PySDM_products.ParticleConcentration(
+                name=&#34;nr&#34;, radius_range=settings.rain_water_radius_range
+            ),
+            PySDM_products.ParticleConcentration(
                 name=&#34;na&#34;, radius_range=(0, settings.cloud_water_radius_range[0])
             ),
             PySDM_products.MeanRadius(),
@@ -227,8 +230,10 @@ class Simulation:
     def save(self, step):
         self.save_scalar(step)
         time = step * self.particulator.dt
-        if time in self.save_spec_and_attr_times:
-            save_index = self.save_spec_and_attr_times.index(time)
+        if np.min(np.abs(time - np.array(self.save_spec_and_attr_times))) &lt; 0.1:
+            save_index = np.argmin(
+                np.abs(time - np.array(self.save_spec_and_attr_times))
+            )
             self.save_spectrum(save_index)
             self.save_attributes()
 
@@ -380,6 +385,9 @@ class Simulation:
                 name=&#34;nc&#34;, radius_range=settings.cloud_water_radius_range
             ),
             PySDM_products.ParticleConcentration(
+                name=&#34;nr&#34;, radius_range=settings.rain_water_radius_range
+            ),
+            PySDM_products.ParticleConcentration(
                 name=&#34;na&#34;, radius_range=(0, settings.cloud_water_radius_range[0])
             ),
             PySDM_products.MeanRadius(),
@@ -460,8 +468,10 @@ class Simulation:
     def save(self, step):
         self.save_scalar(step)
         time = step * self.particulator.dt
-        if time in self.save_spec_and_attr_times:
-            save_index = self.save_spec_and_attr_times.index(time)
+        if np.min(np.abs(time - np.array(self.save_spec_and_attr_times))) &lt; 0.1:
+            save_index = np.argmin(
+                np.abs(time - np.array(self.save_spec_and_attr_times))
+            )
             self.save_spectrum(save_index)
             self.save_attributes()
 
@@ -571,8 +581,10 @@ def add_collision_dynamic(builder, settings, _):
 <pre><code class="python">def save(self, step):
     self.save_scalar(step)
     time = step * self.particulator.dt
-    if time in self.save_spec_and_attr_times:
-        save_index = self.save_spec_and_attr_times.index(time)
+    if np.min(np.abs(time - np.array(self.save_spec_and_attr_times))) &lt; 0.1:
+        save_index = np.argmin(
+            np.abs(time - np.array(self.save_spec_and_attr_times))
+        )
         self.save_spectrum(save_index)
         self.save_attributes()</code></pre>
 </details>

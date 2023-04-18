@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>PySDM_examples.Berry_1967.spectrum_plotter API documentation</title>
-<meta name="description" content="" />
+<title>PySDM_examples.UIUC_2021.commons API documentation</title>
+<meta name="description" content="ABIFM and INAS parameters and other constants" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,45 +19,37 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>PySDM_examples.Berry_1967.spectrum_plotter</code></h1>
+<h1 class="title">Module <code>PySDM_examples.UIUC_2021.commons</code></h1>
 </header>
 <section id="section-intro">
+<p>ABIFM and INAS parameters and other constants</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from matplotlib import pyplot
-from open_atmos_jupyter_utils import show_plot
+<pre><code class="python">&#34;&#34;&#34; ABIFM and INAS parameters and other constants &#34;&#34;&#34;
 
-from PySDM_examples.Shima_et_al_2009.spectrum_plotter import (
-    SpectrumPlotter as SuperSpectrumPlotter,
-)
+from PySDM import Formulae
+from PySDM.physics import si
 
+FREEZING_CONSTANTS = {
+    &#34;dust&#34;: {
+        &#34;NIEMAND_A&#34;: -0.517,
+        &#34;NIEMAND_B&#34;: 8.934,
+        &#34;ABIFM_M&#34;: 22.62,
+        &#34;ABIFM_C&#34;: -1.35,
+    },
+    &#34;illite&#34;: {&#34;ABIFM_M&#34;: 54.48, &#34;ABIFM_C&#34;: -10.67},
+}
 
-class SpectrumPlotter(SuperSpectrumPlotter):
-    def __init__(self, settings, title=None, grid=True, legend=False):
-        size = 2 * 5.236
-        pyplot.figure(num=1, figsize=(size, size * 0.54))
-        pyplot.xlabel(&#34;particle radius [µm]&#34;)
-        pyplot.ylabel(&#34;dm/dlnr [g/m^3/(unit dr/r)]&#34;)
-        super().__init__(settings, title=title, grid=grid, legend=legend, log_base=2)
-        self.color = None
-        self.smooth = True
+COOLING_RATES = (3.75 * si.K / si.min, 0.75 * si.K / si.min, 0.15 * si.K / si.min)
 
-    @staticmethod
-    def ticks():
-        xticks = [4, 6.25, 12.5, 25, 50, 100, 200]
-        pyplot.xticks(xticks, xticks)
-        pyplot.yticks([0.5 * i for i in range(5)], [0, None, 1, None, 2])
+BEST_FIT_LN_S_GEOM = 0.25
 
-    def show(self):
-        self.finish()
-        self.ticks()
-        show_plot()
+LOGNORMAL_MODE_SURF_A = Formulae().trivia.sphere_surface(diameter=0.74 * si.um)
+LOGNORMAL_SGM_G = 2.55
 
-    def plot(self, spectrum, t):
-        settings = self.settings
-        self.plot_data(settings, t, spectrum)</code></pre>
+TEMP_RANGE = (250 * si.K, 230 * si.K)</code></pre>
 </details>
 </section>
 <section>
@@ -67,100 +59,6 @@ class SpectrumPlotter(SuperSpectrumPlotter):
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter"><code class="flex name class">
-<span>class <span class="ident">SpectrumPlotter</span></span>
-<span>(</span><span>settings, title=None, grid=True, legend=False)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class SpectrumPlotter(SuperSpectrumPlotter):
-    def __init__(self, settings, title=None, grid=True, legend=False):
-        size = 2 * 5.236
-        pyplot.figure(num=1, figsize=(size, size * 0.54))
-        pyplot.xlabel(&#34;particle radius [µm]&#34;)
-        pyplot.ylabel(&#34;dm/dlnr [g/m^3/(unit dr/r)]&#34;)
-        super().__init__(settings, title=title, grid=grid, legend=legend, log_base=2)
-        self.color = None
-        self.smooth = True
-
-    @staticmethod
-    def ticks():
-        xticks = [4, 6.25, 12.5, 25, 50, 100, 200]
-        pyplot.xticks(xticks, xticks)
-        pyplot.yticks([0.5 * i for i in range(5)], [0, None, 1, None, 2])
-
-    def show(self):
-        self.finish()
-        self.ticks()
-        show_plot()
-
-    def plot(self, spectrum, t):
-        settings = self.settings
-        self.plot_data(settings, t, spectrum)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="PySDM_examples.Shima_et_al_2009.spectrum_plotter.SpectrumPlotter" href="../Shima_et_al_2009/spectrum_plotter.html#PySDM_examples.Shima_et_al_2009.spectrum_plotter.SpectrumPlotter">SpectrumPlotter</a></li>
-</ul>
-<h3>Static methods</h3>
-<dl>
-<dt id="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.ticks"><code class="name flex">
-<span>def <span class="ident">ticks</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def ticks():
-    xticks = [4, 6.25, 12.5, 25, 50, 100, 200]
-    pyplot.xticks(xticks, xticks)
-    pyplot.yticks([0.5 * i for i in range(5)], [0, None, 1, None, 2])</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.plot"><code class="name flex">
-<span>def <span class="ident">plot</span></span>(<span>self, spectrum, t)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def plot(self, spectrum, t):
-    settings = self.settings
-    self.plot_data(settings, t, spectrum)</code></pre>
-</details>
-</dd>
-<dt id="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.show"><code class="name flex">
-<span>def <span class="ident">show</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def show(self):
-    self.finish()
-    self.ticks()
-    show_plot()</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -171,19 +69,7 @@ def ticks():
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="PySDM_examples.Berry_1967" href="index.html">PySDM_examples.Berry_1967</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter" href="#PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter">SpectrumPlotter</a></code></h4>
-<ul class="">
-<li><code><a title="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.plot" href="#PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.plot">plot</a></code></li>
-<li><code><a title="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.show" href="#PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.show">show</a></code></li>
-<li><code><a title="PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.ticks" href="#PySDM_examples.Berry_1967.spectrum_plotter.SpectrumPlotter.ticks">ticks</a></code></li>
-</ul>
-</li>
+<li><code><a title="PySDM_examples.UIUC_2021" href="index.html">PySDM_examples.UIUC_2021</a></code></li>
 </ul>
 </li>
 </ul>

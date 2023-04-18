@@ -31,7 +31,11 @@ from PySDM.backends import CPU
 from PySDM.builder import Builder
 from PySDM.dynamics import Coalescence, Collision
 from PySDM.environments import Box
-from PySDM.initialisation.sampling.spectral_sampling import ConstantMultiplicity
+from PySDM.formulae import Formulae
+from PySDM.initialisation.sampling.spectral_sampling import (
+    ConstantMultiplicity,
+    Logarithmic,
+)
 from PySDM.physics import si
 from PySDM.products.collision.collision_rates import (
     BreakupRatePerGridbox,
@@ -39,20 +43,28 @@ from PySDM.products.collision.collision_rates import (
     CollisionRateDeficitPerGridbox,
     CollisionRatePerGridbox,
 )
-from PySDM.products.size_spectral import ParticleVolumeVersusRadiusLogarithmSpectrum
+from PySDM.products.size_spectral import (
+    NumberSizeSpectrum,
+    ParticleVolumeVersusRadiusLogarithmSpectrum,
+)
 
 
-def run_box_breakup(settings, steps=None):
-    backend = CPU
-
-    builder = Builder(n_sd=settings.n_sd, backend=backend(settings.formulae))
+def run_box_breakup(
+    settings, steps=None, backend_class=CPU, sample_in_radius=False, return_nv=False
+):
+    builder = Builder(n_sd=settings.n_sd, backend=backend_class(settings.formulae))
     env = Box(dv=settings.dv, dt=settings.dt)
     builder.set_environment(env)
     env[&#34;rhod&#34;] = 1.0
     attributes = {}
-    attributes[&#34;volume&#34;], attributes[&#34;n&#34;] = ConstantMultiplicity(
-        settings.spectrum
-    ).sample(settings.n_sd)
+    if sample_in_radius:
+        diams, attributes[&#34;n&#34;] = Logarithmic(settings.spectrum).sample(settings.n_sd)
+        radii = diams / 2
+        attributes[&#34;volume&#34;] = Formulae().trivia.volume(radius=radii)
+    else:
+        attributes[&#34;volume&#34;], attributes[&#34;n&#34;] = ConstantMultiplicity(
+            settings.spectrum
+        ).sample(settings.n_sd)
     breakup = Collision(
         collision_kernel=settings.kernel,
         coalescence_efficiency=settings.coal_eff,
@@ -66,6 +78,7 @@ def run_box_breakup(settings, steps=None):
         ParticleVolumeVersusRadiusLogarithmSpectrum(
             radius_bins_edges=settings.radius_bins_edges, name=&#34;dv/dlnr&#34;
         ),
+        NumberSizeSpectrum(radius_bins_edges=settings.radius_bins_edges, name=&#34;N(v)&#34;),
         CollisionRatePerGridbox(name=&#34;cr&#34;),
         CollisionRateDeficitPerGridbox(name=&#34;crd&#34;),
         CoalescenceRatePerGridbox(name=&#34;cor&#34;),
@@ -76,11 +89,16 @@ def run_box_breakup(settings, steps=None):
     if steps is None:
         steps = settings.output_steps
     y = np.ndarray((len(steps), len(settings.radius_bins_edges) - 1))
+    if return_nv:
+        y2 = np.ndarray((len(steps), len(settings.radius_bins_edges) - 1))
+
     rates = np.zeros((len(steps), 4))
     # run
-    for (i, step) in enumerate(steps):
+    for i, step in enumerate(steps):
         core.run(step - core.n_steps)
         y[i] = core.products[&#34;dv/dlnr&#34;].get()[0]
+        if return_nv:
+            y2[i] = core.products[&#34;N(v)&#34;].get()[0]
         rates[i, 0] = core.products[&#34;cr&#34;].get()
         rates[i, 1] = core.products[&#34;crd&#34;].get()
         rates[i, 2] = core.products[&#34;cor&#34;].get()
@@ -88,13 +106,14 @@ def run_box_breakup(settings, steps=None):
 
     x = (settings.radius_bins_edges[:-1] / si.micrometres,)[0]
 
-    return (x, y, rates)
+    if return_nv:
+        return (x, y, y2, rates)
+    else:
+        return (x, y, rates)
 
 
-def run_box_NObreakup(settings, steps=None):
-    backend = CPU
-
-    builder = Builder(n_sd=settings.n_sd, backend=backend(settings.formulae))
+def run_box_NObreakup(settings, steps=None, backend_class=CPU):
+    builder = Builder(n_sd=settings.n_sd, backend=backend_class(settings.formulae))
     env = Box(dv=settings.dv, dt=settings.dt)
     builder.set_environment(env)
     env[&#34;rhod&#34;] = 1.0
@@ -123,7 +142,7 @@ def run_box_NObreakup(settings, steps=None):
     y = np.ndarray((len(steps), len(settings.radius_bins_edges) - 1))
     rates = np.zeros((len(steps), 4))
     # run
-    for (i, step) in enumerate(steps):
+    for i, step in enumerate(steps):
         core.run(step - core.n_steps)
         y[i] = core.products[&#34;dv/dlnr&#34;].get()[0]
         rates[i, 0] = core.products[&#34;cr&#34;].get()
@@ -143,7 +162,7 @@ def run_box_NObreakup(settings, steps=None):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="PySDM_examples.deJong_Mackay_2022.simulation_0D.run_box_NObreakup"><code class="name flex">
-<span>def <span class="ident">run_box_NObreakup</span></span>(<span>settings, steps=None)</span>
+<span>def <span class="ident">run_box_NObreakup</span></span>(<span>settings, steps=None, backend_class=PySDM.backends.numba.Numba)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -151,10 +170,8 @@ def run_box_NObreakup(settings, steps=None):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_box_NObreakup(settings, steps=None):
-    backend = CPU
-
-    builder = Builder(n_sd=settings.n_sd, backend=backend(settings.formulae))
+<pre><code class="python">def run_box_NObreakup(settings, steps=None, backend_class=CPU):
+    builder = Builder(n_sd=settings.n_sd, backend=backend_class(settings.formulae))
     env = Box(dv=settings.dv, dt=settings.dt)
     builder.set_environment(env)
     env[&#34;rhod&#34;] = 1.0
@@ -183,7 +200,7 @@ def run_box_NObreakup(settings, steps=None):
     y = np.ndarray((len(steps), len(settings.radius_bins_edges) - 1))
     rates = np.zeros((len(steps), 4))
     # run
-    for (i, step) in enumerate(steps):
+    for i, step in enumerate(steps):
         core.run(step - core.n_steps)
         y[i] = core.products[&#34;dv/dlnr&#34;].get()[0]
         rates[i, 0] = core.products[&#34;cr&#34;].get()
@@ -196,7 +213,7 @@ def run_box_NObreakup(settings, steps=None):
 </details>
 </dd>
 <dt id="PySDM_examples.deJong_Mackay_2022.simulation_0D.run_box_breakup"><code class="name flex">
-<span>def <span class="ident">run_box_breakup</span></span>(<span>settings, steps=None)</span>
+<span>def <span class="ident">run_box_breakup</span></span>(<span>settings, steps=None, backend_class=PySDM.backends.numba.Numba, sample_in_radius=False, return_nv=False)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -204,17 +221,22 @@ def run_box_NObreakup(settings, steps=None):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_box_breakup(settings, steps=None):
-    backend = CPU
-
-    builder = Builder(n_sd=settings.n_sd, backend=backend(settings.formulae))
+<pre><code class="python">def run_box_breakup(
+    settings, steps=None, backend_class=CPU, sample_in_radius=False, return_nv=False
+):
+    builder = Builder(n_sd=settings.n_sd, backend=backend_class(settings.formulae))
     env = Box(dv=settings.dv, dt=settings.dt)
     builder.set_environment(env)
     env[&#34;rhod&#34;] = 1.0
     attributes = {}
-    attributes[&#34;volume&#34;], attributes[&#34;n&#34;] = ConstantMultiplicity(
-        settings.spectrum
-    ).sample(settings.n_sd)
+    if sample_in_radius:
+        diams, attributes[&#34;n&#34;] = Logarithmic(settings.spectrum).sample(settings.n_sd)
+        radii = diams / 2
+        attributes[&#34;volume&#34;] = Formulae().trivia.volume(radius=radii)
+    else:
+        attributes[&#34;volume&#34;], attributes[&#34;n&#34;] = ConstantMultiplicity(
+            settings.spectrum
+        ).sample(settings.n_sd)
     breakup = Collision(
         collision_kernel=settings.kernel,
         coalescence_efficiency=settings.coal_eff,
@@ -228,6 +250,7 @@ def run_box_NObreakup(settings, steps=None):
         ParticleVolumeVersusRadiusLogarithmSpectrum(
             radius_bins_edges=settings.radius_bins_edges, name=&#34;dv/dlnr&#34;
         ),
+        NumberSizeSpectrum(radius_bins_edges=settings.radius_bins_edges, name=&#34;N(v)&#34;),
         CollisionRatePerGridbox(name=&#34;cr&#34;),
         CollisionRateDeficitPerGridbox(name=&#34;crd&#34;),
         CoalescenceRatePerGridbox(name=&#34;cor&#34;),
@@ -238,11 +261,16 @@ def run_box_NObreakup(settings, steps=None):
     if steps is None:
         steps = settings.output_steps
     y = np.ndarray((len(steps), len(settings.radius_bins_edges) - 1))
+    if return_nv:
+        y2 = np.ndarray((len(steps), len(settings.radius_bins_edges) - 1))
+
     rates = np.zeros((len(steps), 4))
     # run
-    for (i, step) in enumerate(steps):
+    for i, step in enumerate(steps):
         core.run(step - core.n_steps)
         y[i] = core.products[&#34;dv/dlnr&#34;].get()[0]
+        if return_nv:
+            y2[i] = core.products[&#34;N(v)&#34;].get()[0]
         rates[i, 0] = core.products[&#34;cr&#34;].get()
         rates[i, 1] = core.products[&#34;crd&#34;].get()
         rates[i, 2] = core.products[&#34;cor&#34;].get()
@@ -250,7 +278,10 @@ def run_box_NObreakup(settings, steps=None):
 
     x = (settings.radius_bins_edges[:-1] / si.micrometres,)[0]
 
-    return (x, y, rates)</code></pre>
+    if return_nv:
+        return (x, y, y2, rates)
+    else:
+        return (x, y, rates)</code></pre>
 </details>
 </dd>
 </dl>
