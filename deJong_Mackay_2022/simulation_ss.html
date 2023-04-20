@@ -104,7 +104,7 @@ def run_to_steady_state(parameterization, n_sd, steps, nruns=1, dt=1 * si.s):
                 irun += 1
                 dt = 1 * si.s
 
-    data_filename = &#34;data/steadystate_&#34; + parameterization + &#34;_&#34; + str(n_sd) + &#34;sd.pkl&#34;
+    data_filename = &#34;steadystate_&#34; + parameterization + &#34;_&#34; + str(n_sd) + &#34;sd.pkl&#34;
 
     with open(data_filename, &#34;wb&#34;) as handle:
         pkl.dump(
@@ -424,7 +424,7 @@ def get_straub_fig10_data():
                 irun += 1
                 dt = 1 * si.s
 
-    data_filename = &#34;data/steadystate_&#34; + parameterization + &#34;_&#34; + str(n_sd) + &#34;sd.pkl&#34;
+    data_filename = &#34;steadystate_&#34; + parameterization + &#34;_&#34; + str(n_sd) + &#34;sd.pkl&#34;
 
     with open(data_filename, &#34;wb&#34;) as handle:
         pkl.dump(
