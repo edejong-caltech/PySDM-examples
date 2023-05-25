@@ -22,12 +22,12 @@ class Settings:
         HAC: float = 1,
         c_pd: float = 1005 * si.joule / si.kilogram / si.kelvin,
         g_std: float = sci.g * si.metre / si.second**2,
-        BDF: bool = False,
+        scipy_ode_solver: bool = False,
     ):
         assert model in ("Constant", "CompressedFilmOvadnevaite")
         self.model = model
         self.n_sd_per_mode = n_sd_per_mode
-        self.BDF = BDF
+        self.scipy_ode_solver = scipy_ode_solver
         self.formulae = Formulae(
             surface_tension=model,
             constants={

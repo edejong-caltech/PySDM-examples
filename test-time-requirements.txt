@@ -8,5 +8,9 @@ Pillow<9.1.0  # https://github.com/python-pillow/Pillow/blob/0606f02860d0c4449bc
 ipywidgets<8.0.3
 ipykernel<6.22.0 # https://github.com/dask/distributed/issues/7688
 
+<<<<<<< HEAD
 PySDM @ git+https://github.com/edejong-caltech/PySDM@294f671#egg=PySDM
+=======
+PySDM @ git+https://github.com/open-atmos/PySDM@506f185#egg=PySDM
+>>>>>>> 767c1f9c3202bfaf3a50d6bbc11cdaa276cbb6f6
 PyMPDATA @ git+https://github.com/open-atmos/PyMPDATA@d3179a5#egg=PyMPDATA

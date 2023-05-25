@@ -1,7 +1,7 @@
 import numpy as np
 from PySDM import Builder
 from PySDM.backends import CPU
-from PySDM.backends.impl_numba.test_helpers import bdf
+from PySDM.backends.impl_numba.test_helpers import scipy_ode_condensation_solver
 from PySDM.dynamics import AmbientThermodynamics, Condensation
 from PySDM.environments import Parcel
 from PySDM.initialisation import equilibrate_wet_radii
@@ -53,7 +53,7 @@ class Simulation(BasicSimulation):
             particulator=builder.build(attributes=attributes, products=products)
         )
         if scipy_solver:
-            bdf.patch_particulator(self.particulator)
+            scipy_ode_condensation_solver.patch_particulator(self.particulator)
 
         self.output_attributes = {
             "volume": tuple([] for _ in range(self.particulator.n_sd))

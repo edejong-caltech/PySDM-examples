@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
 from PySDM.backends import CPU, GPU
-from PySDM.backends.impl_numba.test_helpers import bdf
+from PySDM.backends.impl_numba.test_helpers import scipy_ode_condensation_solver
 
 from PySDM_examples.Arabas_and_Shima_2017.settings import setups
 from PySDM_examples.Arabas_and_Shima_2017.simulation import Simulation
@@ -15,14 +15,16 @@ def data(n_output, rtols, schemes, setups_num):
     resultant_data = {}
     for scheme in schemes:
         resultant_data[scheme] = {}
-        if scheme == "BDF":
+        if scheme == "SciPy":
             for rtol in rtols:
                 resultant_data[scheme][rtol] = []
             for settings_idx in range(setups_num):
                 settings = setups[settings_idx]
                 settings.n_output = n_output
                 simulation = Simulation(settings)
-                bdf.patch_particulator(simulation.particulator)
+                scipy_ode_condensation_solver.patch_particulator(
+                    simulation.particulator
+                )
                 results = simulation.run()
                 for rtol in rtols:
                     resultant_data[scheme][rtol].append(results)
@@ -67,7 +69,7 @@ def plot(plot_data, rtols, schemes, setups_num, show_plot, path=None):
         setups_num, len(rtols), sharex=True, sharey=True, figsize=(10, 13)
     )
     for settings_idx in range(setups_num):
-        BDF_S = None
+        SCIPY_S = None
         PySDM_S = None
         for rtol_idx, _rtol in enumerate(rtols):
             ax = axs[settings_idx, rtol_idx]
@@ -76,14 +78,14 @@ def plot(plot_data, rtols, schemes, setups_num, show_plot, path=None):
                 S = datum["S"]
                 z = datum["z"]
                 dt = datum["dt_cond_min"]
-                if scheme == "BDF":
+                if scheme == "SciPy":
                     ax.plot(S, z, label=scheme, color="grey")
-                    BDF_S = np.array(S)
+                    SCIPY_S = np.array(S)
                 else:
                     add_color_line(fig, ax, S, z, dt)
                     PySDM_S = np.array(S)
-            if BDF_S is not None and PySDM_S is not None:
-                mae = np.mean(np.abs(BDF_S - PySDM_S))
+            if SCIPY_S is not None and PySDM_S is not None:
+                mae = np.mean(np.abs(SCIPY_S - PySDM_S))
                 ax.set_title(f"MAE: {mae:.4E}")
             ax.set_xlim(-7.5e-3, 7.5e-3)
             ax.set_ylim(0, 180)
@@ -105,11 +107,11 @@ def plot(plot_data, rtols, schemes, setups_num, show_plot, path=None):
 
 def main(save=None, show_plot=True):
     rtols = [1e-7, 1e-11]
-    schemes = ["CPU", "BDF"]
+    schemes = ["CPU", "SciPy"]
     setups_num = len(setups)
     input_data = data(80, rtols, schemes, setups_num)
     plot(input_data, rtols, schemes, setups_num, show_plot, save)
 
 
 if __name__ == "__main__":
-    main("BDF_VS_ADAPTIVE", show_plot="CI" not in os.environ)
+    main("SCIPY_VS_ADAPTIVE", show_plot="CI" not in os.environ)
